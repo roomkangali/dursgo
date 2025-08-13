@@ -1,0 +1,2 @@
+# dursgo
+anu jajal kie
