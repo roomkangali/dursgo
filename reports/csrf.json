@@ -1,0 +1,49 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.13:5000/",
+    "scan_start_time": "2025-08-13T15:39:57+07:00",
+    "scan_end_time": "2025-08-13T15:39:59+07:00",
+    "total_duration": "2s",
+    "scanners_run": [
+      "csrf"
+    ],
+    "technologies_detected": {
+      "WebServer": "Werkzeug/2.3.7 Python/3.12.3"
+    },
+    "total_urls_discovered": 11,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 3
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Cross-Site Request Forgery (CSRF)",
+      "URL": "http://192.168.1.13:5000/product/4/comment",
+      "Location": "body",
+      "Details": "Request without CSRF token was accepted (status 302).",
+      "severity": "medium",
+      "evidence": "Token omitted and server response matched baseline.",
+      "remediation": "Implement CSRF protection using synchronizer tokens, SameSite cookies, or double submit tokens.",
+      "scanner_name": "csrf"
+    },
+    {
+      "VulnerabilityType": "Cross-Site Request Forgery (CSRF)",
+      "URL": "http://192.168.1.13:5000/logout",
+      "Location": "body",
+      "Details": "Request without CSRF token was accepted (status 302).",
+      "severity": "medium",
+      "evidence": "Token omitted and server response matched baseline.",
+      "remediation": "Implement CSRF protection using synchronizer tokens, SameSite cookies, or double submit tokens.",
+      "scanner_name": "csrf"
+    },
+    {
+      "VulnerabilityType": "Cross-Site Request Forgery (CSRF)",
+      "URL": "http://192.168.1.13:5000/preferences",
+      "Location": "body",
+      "Details": "Request without CSRF token was accepted (status 302).",
+      "severity": "medium",
+      "evidence": "Token omitted and server response matched baseline.",
+      "remediation": "Implement CSRF protection using synchronizer tokens, SameSite cookies, or double submit tokens.",
+      "scanner_name": "csrf"
+    }
+  ]
+}

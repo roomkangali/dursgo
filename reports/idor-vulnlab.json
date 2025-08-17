@@ -1,0 +1,55 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.23:1337/lab/idor/invoices/",
+    "scan_start_time": "2025-08-16T21:46:44+07:00",
+    "scan_end_time": "2025-08-16T21:46:54+07:00",
+    "total_duration": "11s",
+    "scanners_run": [
+      "idor"
+    ],
+    "technologies_detected": {
+      "WebServer": "Apache/2.4.41 (Ubuntu)"
+    },
+    "total_urls_discovered": 165,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 3
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Insecure Direct Object Reference (IDOR)",
+      "URL": "http://192.168.1.23:1337/lab/idor/money-transfer/",
+      "Parameter": "transfer_amount",
+      "Payload": "1",
+      "Location": "body",
+      "Details": "As an unauthenticated user, accessed a resource via parameter 'transfer_amount=1'. The response was valid and different from the error page baseline, indicating access to sensitive data.",
+      "severity": "High",
+      "evidence": "Response for a valid ID was different from the response for a known-invalid ID.",
+      "remediation": "Ensure that server-side authorization checks verify that the logged-in user has permission to access the requested resource ID.",
+      "scanner_name": "Insecure Direct Object Reference (IDOR) Scanner"
+    },
+    {
+      "VulnerabilityType": "Insecure Direct Object Reference (IDOR)",
+      "URL": "http://192.168.1.23:1337/lab/idor/ticket-sales/",
+      "Parameter": "amount",
+      "Payload": "1",
+      "Location": "body",
+      "Details": "As an unauthenticated user, accessed a resource via parameter 'amount=1'. The response was valid and different from the error page baseline, indicating access to sensitive data.",
+      "severity": "High",
+      "evidence": "Response for a valid ID was different from the response for a known-invalid ID.",
+      "remediation": "Ensure that server-side authorization checks verify that the logged-in user has permission to access the requested resource ID.",
+      "scanner_name": "Insecure Direct Object Reference (IDOR) Scanner"
+    },
+    {
+      "VulnerabilityType": "Insecure Direct Object Reference (IDOR)",
+      "URL": "http://192.168.1.23:1337/lab/idor/changing-password/",
+      "Parameter": "user_id",
+      "Payload": "1",
+      "Location": "body",
+      "Details": "As an unauthenticated user, accessed a resource via parameter 'user_id=1'. The response was valid and different from the error page baseline, indicating access to sensitive data.",
+      "severity": "High",
+      "evidence": "Response for a valid ID was different from the response for a known-invalid ID.",
+      "remediation": "Ensure that server-side authorization checks verify that the logged-in user has permission to access the requested resource ID.",
+      "scanner_name": "Insecure Direct Object Reference (IDOR) Scanner"
+    }
+  ]
+}

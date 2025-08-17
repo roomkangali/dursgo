@@ -1,0 +1,67 @@
+{
+  "scan_summary": {
+    "target_url": "http://localhost:4000/graphql",
+    "scan_start_time": "2025-08-13T15:50:04+07:00",
+    "scan_end_time": "2025-08-13T15:50:09+07:00",
+    "total_duration": "5s",
+    "scanners_run": [
+      "graphql"
+    ],
+    "technologies_detected": {
+      "X-Powered-By": "Express"
+    },
+    "total_urls_discovered": 1,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 4
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "SQL Injection",
+      "URL": "http://localhost:4000/graphql",
+      "Parameter": "query",
+      "Payload": "Detected REST API SQL Injection in search at http://localhost:4000/api/vulnerable/search with pattern: vulnerable",
+      "Location": "query",
+      "Details": "SQL Injection detected",
+      "severity": "High",
+      "evidence": "Detected REST API SQL Injection in search at http://localhost:4000/api/vulnerable/search with pattern: vulnerable",
+      "remediation": "Use parameterized queries or prepared statements. Validate and sanitize all user inputs. Implement proper input validation and output encoding.",
+      "scanner_name": "GraphQL Scanner"
+    },
+    {
+      "VulnerabilityType": "GraphQL Introspection Enabled",
+      "URL": "http://localhost:4000/graphql",
+      "Parameter": "query",
+      "Payload": "{__schema{types{name}}}",
+      "Location": "query",
+      "Details": "GraphQL Introspection is enabled. This can leak sensitive information about the API schema, including all available queries, mutations, and types.",
+      "severity": "Medium",
+      "evidence": "{\"data\":{\"__schema\":{\"queryType\":{\"name\":\"Query\"},\"mutationType\":{\"name\":\"Mutation\"},\"subscriptionType\":null,\"types\":[{\"kind\":\"OBJECT\",\"name\":\"User\",\"description\":null,\"fields\":[{\"name\":\"id\",\"descript... [truncated]",
+      "remediation": "Disable introspection in production or restrict it to authenticated users. Consider using graphql-disable-introspection for Apollo Server or disable introspection in your GraphQL server configuration.",
+      "scanner_name": "GraphQL Scanner"
+    },
+    {
+      "VulnerabilityType": "GraphQL Batching Enabled",
+      "URL": "http://localhost:4000/graphql",
+      "Parameter": "query",
+      "Payload": "GraphQL batching is enabled with 100% success rate (tested 30 requests)",
+      "Location": "query",
+      "Details": "Multiple queries were successfully executed in a single batch request.",
+      "severity": "Medium",
+      "evidence": "GraphQL batching is enabled with 100% success rate (tested 30 requests)",
+      "remediation": "Consider disabling GraphQL batching to prevent potential DoS attacks. If batching is required, implement rate limiting and query complexity analysis.",
+      "scanner_name": "GraphQL Scanner"
+    },
+    {
+      "VulnerabilityType": "Missing Rate Limiting",
+      "URL": "http://localhost:4000/graphql",
+      "Parameter": "query",
+      "Payload": "No rate limiting detected at GET http://localhost:4000/api/vulnerable/rate-limit - All 30 requests succeeded (avg 1ms)",
+      "Location": "query",
+      "Details": "Missing rate limiting allows for potential DoS attacks",
+      "severity": "Medium",
+      "evidence": "No rate limiting detected at GET http://localhost:4000/api/vulnerable/rate-limit - All 30 requests succeeded (avg 1ms)",
+      "remediation": "Implement rate limiting to protect against brute force and denial of service attacks. Consider using a sliding window algorithm or token bucket algorithm.",
+      "scanner_name": "GraphQL Scanner"
+    }
+  ]
+}

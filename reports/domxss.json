@@ -1,0 +1,28 @@
+{
+  "scan_summary": {
+    "target_url": "https://0ac100aa0303d74281280c6e0050009b.web-security-academy.net/",
+    "scan_start_time": "2025-08-13T16:30:50+07:00",
+    "scan_end_time": "2025-08-13T16:31:38+07:00",
+    "total_duration": "48s",
+    "scanners_run": [
+      "domxss"
+    ],
+    "technologies_detected": {},
+    "total_urls_discovered": 22,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 1
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "DOM-Based Cross-Site Scripting (via postMessage)",
+      "URL": "https://0ac100aa0303d74281280c6e0050009b.web-security-academy.net/",
+      "Payload": "\u003cdiv id='dursgo-proof-554932411'\u003eDursgoWasHere\u003c/div\u003e",
+      "Location": "postMessage event data",
+      "Details": "The page listens for web messages and writes message data to the DOM unsafely. Payload Description: Direct HTML div injection with a trackable ID.",
+      "severity": "High",
+      "evidence": "An HTML element with unique ID '#dursgo-proof-554932411' was injected into the DOM via postMessage.",
+      "remediation": "Always validate the origin of incoming messages. Avoid writing message data into dangerous HTML sinks like 'innerHTML'. Use safe alternatives like 'textContent'.",
+      "scanner_name": "Intelligent DOM-Based XSS Scanner"
+    }
+  ]
+}
