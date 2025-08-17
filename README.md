@@ -200,7 +200,7 @@ DursGo provides a variety of scanner modules. Scans can be run with one or more 
 ```bash
 - `none` - A special option to perform crawling only, without vulnerability scanning.
 - `blindssrf` - Detects Blind SSRF vulnerabilities (requires `-oast` flag).
-- `cmdinjection` - Detects Command Injection vulnerabilities (supports OAST - requires `-oast` flag).
+- `cmdinjection` - Detects Command Injection vulnerabilities ( OAST - requires `-oast` flag).
 - `domxss` - Detects DOM-Based XSS vulnerabilities (requires `--render-js` flag).
 - `bola` - Detects Broken Object Level Authorization (BOLA) vulnerabilities.
 - `cors` - Detects Cross-Origin Resource Sharing (CORS) misconfigurations.
@@ -216,7 +216,7 @@ DursGo provides a variety of scanner modules. Scans can be run with one or more 
 - `sqli` - Detects SQL Injection vulnerabilities.
 - `ssrf` - Detects in-band Server-Side Request Forgery (SSRF) vulnerabilities.
 - `ssti` - Detects Server-Side Template Injection (SSTI) vulnerabilities.
-- `xss` - **Runs both XSS scanners:** `xss-reflected` and `xss-stored`.
+- `xss` - Runs both XSS scanners: `xss-reflected` and `xss-stored`.
 - `xss-reflected` - Detects Reflected XSS vulnerabilities.
 - `xss-stored` - Detects Stored XSS vulnerabilities.
 ```
