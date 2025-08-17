@@ -1,0 +1,92 @@
+# ============================================================
+#           DursGo Configuration Template
+# ============================================================
+# This file provides a template for all supported authentication methods.
+# Uncomment and configure the desired authentication block.
+# Note: Only one authentication method can be active at a time.
+# ============================================================
+
+# --- GENERAL SETTINGS ---
+# Target URL for scanning
+target: "https://0ad50029037eda1980ad03b700f000b8.web-security-academy.net/"
+concurrency: 10
+max_depth: 5
+scanners_to_run: "csrf"
+#"none,xss,sqli,lfi,openredirect,ssrf,exposed,idor,csrf,cmdinjection,ssti,securityheaders,cors,fileupload,bola,massassignment,graphql,blindssrf,domxss"
+
+# Settings Blind Scanner
+oast: false
+render_js: false
+user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+
+# Output settings
+output:
+  verbose: false
+  format: "json"
+  output_file: "test1.json"
+
+# ============================================================
+#                   AUTHENTICATION METHODS
+# ============================================================
+# Select ONE of the following four methods and uncomment its block.
+
+authentication:
+  # Set 'enabled: true' for the selected method.
+  # Ensure only one authentication block is enabled.
+  enabled: true
+
+  # (IDOR SCANNER) Specify the numeric ID of the authenticated user.
+  # This is used to prevent false positives during IDOR vulnerability checks.
+  scan_idor: 9999
+
+
+# --- OPTION 1: Form-Based Authentication (Dynamic Login) ---
+# Use for standard username/password credentials.
+# ------------------------------------------------------------
+#
+#  # Login form submission endpoint URL
+#  login_url: "http://contoh.com/login"
+#  
+#  # HTTP method for login (typically POST)
+#  login_method: "POST"
+#  
+#  # Credential payload (e.g., URL-encoded string)
+#  login_data: "username=admin&password=password123"
+#  
+#  # (Optional, recommended) Keyword to verify successful login
+#  login_check_keyword: "Logout"
+
+
+# --- OPTION 2: Cookie-Based Authentication (Static) ---
+# Use if you have a valid session cookie.
+# ------------------------------------------------------------
+#
+#  # Paste the full cookie string here
+#  cookie: "session=a1b2c3d4e5f6; user_id=123; role=admin"
+#  cookie: "session=.eJwlzjtqBTEMheG9uE5hSR7Jns0MkiyREEhgHlXI3q_hlucvDt9fOfKM67Ps9_nERzm-ZtkLEJkls0tgB5qGYk6QI2tXIhzkQDFc1UAh2kh13aSOAPXB0twQKXKqRK2mMqHj1njS6tyCPXSsGzCtWZGm9DQwSFq3ClIW5LnifGtwTb_OPO7f7_hZwTqBbNm2Hm0pyJGQQzjbcipnhDSlnOX_BVFxQEc.aKCXsA.k0lahMyOZtNHoxR3jA5nr3Bm0fQ"  
+  cookie: "session=yESqIFVN7ARtUbeM2tCws9FPEXDlhA9j"
+#  cookie: "XSRF-TOKEN=eyJpdiI6InBzOStndm9VQVNLUTJ4TmNZRnY3cEE9PSIsInZhbHVlIjoib1Z2YlBnaWUwSDcrNHIwcmUvbnFtUzVhWFAxeFp1VFJweFRlUkszNnQvYXk5NmJEZ3U3TWJ0YmNMbS82RUJOOVVXVUJPZW5qREQzcXFlbzlnZGtkYW9xNmtlK1p6anZNc0JUUG5qRFMxbGhIVEI3bGFDL0RBNlBVMUtMcDNHZUIiLCJtYWMiOiJiMzZmMThhMjY3NmE3Y2I0MDJmNTk3MDFiY2ViMGI5YzhlNDczZjgzN2ZlZDk3N2U5ZjQ1OTg0MTM4MWJiNWRjIiwidGFnIjoiIn0%3D; dursgo_session=eyJpdiI6IkxtVGZKTWdkRzNhVFl1blpoZS8rb0E9PSIsInZhbHVlIjoiQXU2Z3BUOXI5TDJxdE1kbEJ2UTRmQ2Nod1dsK0EyZzVSTy8rVTFRSVpNL3NBY2ttblpXbnZGMmVkQ2FkYTVXZnFWcHl4VytIczVZTkdxenBrQ0tzeDYxcUdpem13clNXNGlOSSs3TUY2aHpadmF4SkR3elQ5Q1hOSnEzN0NOSDMiLCJtYWMiOiJmMWMyMWZiYmY4YmRkMGJkMGQ1NTJjY2I1ODhiYjYwNzMwYWFhMTZlMTMzMTRkNGJmOGFjZjI4YmEzNmRkZDM0IiwidGFnIjoiIn0%3D; _dursgoid=eeTF1cCUs06DZjwmx7V4Gq9K6Odej.37wiaptQS2x6s-1755228049494-0.0.1.1-604800000; __cf_bm=yqE7JMH6t6MlJFfg5Y2cTm1_EbOZFlnyEFgiPKwCoCU-1755229979-1.0.1.1-3Ir4yKuPZMI_DXU6zdOaRTY1QvROrdBux.iYFoQdzFC0RSihfemXKsrmD2A68nAAGsDceUp5sjdDG2qfkenlwTlO8g24S.EYQ.Cc8D.RJbI" 
+#  cookie: "PHPSESSID=e4umgl18a9vc83g4n4j9hj6fdn"
+
+# --- OPTION 3: Header-Based Authentication (Static) ---
+# Use for API Keys or JWT (Bearer) tokens.
+# ------------------------------------------------------------
+#
+#  # Define custom headers within the 'headers' section
+#  headers:
+#    # Example for Bearer Token (JWT)
+#  Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+#    
+#    # Example for a custom API Key
+#    X-API-Key: "apy-kay-secret-12345"
+
+# --- OPTION 4: Auth-Token Based Authentication (Static) ---
+# Use for X-Auth-Token.
+# ------------------------------------------------------------
+#
+#  # Type: "header" specifies the token is sent via an HTTP header.
+#  type: "header"
+#  # The name of the HTTP header to use. 
+#  header_name: "X-Auth-Token"
+#  # Value: The static token obtained from the login process.
+#  value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6ImR1cnNnbyIsInVzZXJfaWQiOjk5LCJpYXQiOjE1MTYyMzkwMjJ9.D-a2iYv03DEbOFpS42d_F5M9h3GZ_s5k7xo5G2jF8_8"
