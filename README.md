@@ -24,6 +24,56 @@
 
 DursGo is a web application security scanner designed for penetration testing and automated security audits. Built with Go, DursGo offers high-performance and flexible security scanning capabilities.
 
+---
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" valign="top">
+        <strong>DEMO SCAN - VulnLab</strong>
+        <br><br>
+        <a href="https://www.youtube.com/watch?v=3lTLDSuS99A" target="_blank">
+          <img src="https://img.youtube.com/vi/3lTLDSuS99A/hqdefault.jpg" alt="Demo 1" width="100%"/>
+        </a>
+      </td>
+      <td align="center" valign="top">
+        <strong>DEMO SCAN - Test site for Acunetix WVS.</strong>
+        <br><br>
+        <a href="https://www.youtube.com/watch?v=BQ3sim08V-M" target="_blank">
+          <img src="https://img.youtube.com/vi/BQ3sim08V-M/hqdefault.jpg" alt="Demo 2" width="100%"/>
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+---
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" valign="top">
+        <strong>DEMO SCAN - Lab Portswigger Part I</strong>
+        <br><br>
+        <a href="https://www.youtube.com" target="_blank">
+          <strong>TO BE CONTINUE</strong>
+        </a>
+      </td>
+      <td align="center" valign="top">
+        <strong>DEMO SCAN - Lab Portswigger Part II</strong>
+        <br><br>
+        <a href="https://www.youtube.com/" target="_blank">
+          <strong>TO BE CONTINUE</strong>
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
 ## 📋 Table of Contents
 
 - [✨ Features](#features)
