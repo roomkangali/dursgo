@@ -57,15 +57,15 @@ DursGo is a web application security scanner designed for penetration testing an
       <td align="center" valign="top">
         <strong>DEMO SCAN - Lab Portswigger Part I</strong>
         <br><br>
-        <a href="https://www.youtube.com" target="_blank">
-          <strong>TO BE CONTINUE</strong>
+        <a href="https://www.youtube.com/watch?v=0nlfI5hYGf4" target="_blank">
+          <img src="https://img.youtube.com/vi/0nlfI5hYGf4/hqdefault.jpg" alt="Demo 3" width="100%"/>
         </a>
       </td>
       <td align="center" valign="top">
         <strong>DEMO SCAN - Lab Portswigger Part II</strong>
         <br><br>
-        <a href="https://www.youtube.com/" target="_blank">
-          <strong>TO BE CONTINUE</strong>
+        <a href="https://www.youtube.com/watch?v=8Wu2wEWbt-Q" target="_blank">
+          <img src="https://img.youtube.com/vi/8Wu2wEWbt-Q/hqdefault.jpg" alt="Demo 4" width="100%"/>
         </a>
       </td>
     </tr>
