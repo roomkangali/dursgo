@@ -48,8 +48,6 @@ DursGo is a web application security scanner designed for penetration testing an
 - [💡 The DursGo Difference: Intelligence Under the Hood](#the-dursgo-difference-intelligence-under-the-hood)
 - [📈 KEV (Known Exploited Vulnerabilities) Updates](#kev-known-exploited-vulnerabilities-updates)
 - [🗺️ Development Roadmap](#development-roadmap)
-  - [1. IDOR (Insecure Direct Object Reference) Scanner](#1-idor-insecure-direct-object-reference-scanner)
-  - [2. General Roadmap for DursGo](#2-general-roadmap-for-dursgo)
 - [❓ FAQ](#faq)
 - [🙏 Contributing](#contributing)
 - [📄 License](#license)
