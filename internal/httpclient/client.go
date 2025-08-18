@@ -203,6 +203,18 @@ func (c *Client) Post(url, contentType string, body io.Reader) (*http.Response, 
 	return c.Do(req)                            // Delegate to the Do method for request execution.
 }
 
+// GetWithCookies performs an HTTP GET request, adding the provided cookies to the request.
+func (c *Client) GetWithCookies(url string, cookies []*http.Cookie) (*http.Response, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+	return c.Do(req)
+}
+
 // GetClient returns the underlying standard http.Client instance.
 func (c *Client) GetClient() *http.Client {
 	return c.httpClient
