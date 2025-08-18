@@ -1,11 +1,64 @@
+# 🗄️ DursGo - The Go-Powered Web Application Scanner
+
+<p align="center">
+  <img src="logo/dursgo-logo.png" width="750">
+</p>
+
+<div align="center">
+
+# 📦 Package Attributes
+
+<p>
+    <a href="https://golang.org/doc/install"><img src="https://img.shields.io/badge/go-1.23%2B-blue.svg" alt="Go Version"></a>
+    <a href="https://github.com/roomkangali/dursgo/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+    <a href="https://github.com/roomkangali/dursgo/stargazers"><img src="https://img.shields.io/github/stars/roomkangali/dursgo.svg?style=social" alt="GitHub Stars"></a>
+</p>
+<p>
+    <img src="https://img.shields.io/badge/Linux-Supported-green.svg" alt="Linux Supported">
+    <img src="https://img.shields.io/badge/macOS-Supported-green.svg" alt="macOS Supported">
+    <img src="https://img.shields.io/badge/Windows-Supported-green.svg" alt="Windows Supported">
+</p>
+
+</div>
+
 # DursGo - Web Application Security Scanner
 
 DursGo is a web application security scanner designed for penetration testing and automated security audits. Built with Go, DursGo offers high-performance and flexible security scanning capabilities.
 
-## Key Features
+## 📋 Table of Contents
+
+- [✨ Features](#features)
+- [⚙️ Scan Workflow](#scan-workflow)
+- [🔩 Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Installation Steps](#installation-steps)
+  - [Initial Configuration](#initial-configuration)
+  - [Additional Prerequisites for Specific Scanners](#additional-prerequisites-for-specific-scanners)
+- [🚀 Quick Start](#quick-start)
+  - [Basic Scan](#basic-scan)
+  - [Scan with OAST (Out-of-Band)](#scan-with-oast-out-of-band)
+  - [Scan for DOM XSS using `-render-js`](#scan-for-dom-xss-using--render-js)
+- [💻 Command-Line Options](#command-line-options)
+- [🛡️ Available Scanners](#available-scanners)
+  - [Using a Configuration File](#using-a-configuration-file)
+- [📝 Configuration File (`config.yaml`)](#configuration-file-configyaml)
+  - [General Settings](#general-settings)
+  - [Output Settings](#output-settings)
+  - [Authentication Configuration](#authentication-configuration)
+- [📊 JSON Report Structure](#json-report-structure)
+- [💡 The DursGo Difference: Intelligence Under the Hood](#the-dursgo-difference-intelligence-under-the-hood)
+- [📈 KEV (Known Exploited Vulnerabilities) Updates](#kev-known-exploited-vulnerabilities-updates)
+- [🗺️ Development Roadmap](#development-roadmap)
+  - [1. IDOR (Insecure Direct Object Reference) Scanner](#1-idor-insecure-direct-object-reference-scanner)
+  - [2. General Roadmap for DursGo](#2-general-roadmap-for-dursgo)
+- [❓ FAQ](#faq)
+- [🙏 Contributing](#contributing)
+- [📄 License](#license)
+- [⚠️ Disclaimer](#disclaimer)
+
+## Features
 
 - **Intelligent, Context-Aware Scanning:** Detects a wide range of vulnerabilities using context-aware logic for high accuracy.
-- **Advanced False Positive Reduction:** Employs sophisticated verification methods to minimize false positives.
 - **Comprehensive Authentication Support:** Capable of scanning applications protected by login forms, bearer tokens, or session cookies.
 - **In-Depth Automated Discovery:** Performs comprehensive crawling of web applications, including JavaScript-based SPAs and API endpoints.
 - **Accurate Finding Deduplication:** Presents clean, unique findings by normalizing and deduplicating results.
@@ -25,22 +78,23 @@ Dursgo follows a systematic, multi-stage workflow to ensure comprehensive covera
 5.  **OAST Verification (If Active):** If the `-oast` flag is enabled, Dursgo polls the OAST server for any out-of-band interactions that confirm blind vulnerabilities.
 6.  **Deduplication & Reporting:** All findings are aggregated, deduplicated based on vulnerability type and a normalized path, and then presented in the console output and/or a JSON report file.
 
+**A Note on Scan Duration:** The thoroughness of the crawler, especially the "Proactive Parameter Discovery" feature, has a significant multiplicative effect on the total scan duration, particularly when using `-s all`. The total number of tests is a product of `(URLs) x (Parameters) x (Payloads) x (Scanners)`. On large sites, this can result in a very high number of HTTP requests, leading to long scan times. This is a direct trade-off between deep, comprehensive coverage and speed.
+
 ## Installation
 
 ### Prerequisites
 
-- **Go Language:** Ensure Go version 1.23 or newer is installed.
-  - To check your Go version: `go version`
+- **Go Language:** Requires Go version 1.23 or newer.
+  - The installed Go version can be checked with: `go version`
   - To install Go, visit: [https://golang.org/doc/install](https://golang.org/doc/install)
 
 ### Installation Steps
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/username/DursGo.git
-    cd DursGo
+    git clone https://github.com/roomkangali/dursgo.git
+    cd dursgo
     ```
-    *(Replace the URL with the actual repository URL)*
 
 2.  **Build the Application:**
     Compile the source code into an executable binary. This command will create a `dursgo` file (or `dursgo.exe` on Windows) in the current directory.
@@ -48,23 +102,26 @@ Dursgo follows a systematic, multi-stage workflow to ensure comprehensive covera
     go build -o dursgo ./cmd/dursgo
     ```
 
-3.  **(Optional) Move the Binary to Your PATH:**
-    To run `dursgo` from any directory, move the compiled binary to a location in your system's PATH.
+3.  **(Optional) Move the Binary to the System PATH:**
+    To allow `dursgo` to be executed from any directory, the compiled binary can be moved to a location within the system's PATH.
     ```bash
     # For Linux/macOS
-    sudo mv dursgo /usr/local/bin/
+    sudo cp dursgo /usr/local/bin/
     ```
 
 ### Initial Configuration
 
--   **`config.yaml`:** Dursgo automatically looks for a `config.yaml` file in the directory it is run from. Be sure to customize this file for your target and scanning needs.
--   **Authentication:** If your target requires authentication, configure the `authentication` section in `config.yaml`.
+-   **`config.yaml`:** Dursgo automatically looks for a `config.yaml` file in the directory from which it is executed. This file should be customized for the target and specific scanning needs.
+-   **Authentication:** If the target application requires authentication, the `authentication` section in `config.yaml` must be configured.
 
 ### Additional Prerequisites for Specific Scanners
 
--   **For the DOM XSS Scanner (`-s domxss`):**
-    -   **Headless Browser (Chromium):** This scanner requires a headless browser like Google Chrome or Chromium to be installed. The underlying library will attempt to find it automatically.
-    -   *Example Chromium Installation (Linux):* `sudo apt-get install chromium-browser`
+-   **For JavaScript Rendering (`-render-js`) and the DOM XSS Scanner (`-s domxss`):**
+    -   **Google Chrome or Chromium:** These features require a headless browser to execute JavaScript. Either Google Chrome or Chromium must be installed on the system. The scanner will automatically detect the installed browser.
+    -   **Installation Examples:**
+        -   **Debian/Ubuntu:** `sudo apt-get update && sudo apt-get install -y chromium-browser`
+        -   **CentOS/RHEL:** `sudo yum install -y chromium`
+        -   **macOS (using Homebrew):** `brew install --cask google-chrome`
 -   **For OAST-Based Scanners (`-s blindssrf`, `-s cmdinjection` with OAST):**
     -   **OAST Service (Interactsh):** These scanners rely on an external OAST service. Dursgo will automatically use the default public Interactsh server when the `--oast` flag is used.
 
@@ -72,7 +129,7 @@ Dursgo follows a systematic, multi-stage workflow to ensure comprehensive covera
 
 ### Basic Scan
 ```bash
-./dursgo -u http://example.com -s xss,sqli
+./dursgo -u http://example.com -c 10 -r 3 -s xss,sqli
 ```
 
 ### Scan with OAST (Out-of-Band)
@@ -82,19 +139,22 @@ To run a scanner that relies on OAST, use the `--oast` flag.
 
 ```bash
 # Correct: Scan for Blind SSRF
-./dursgo -u http://example.com -s blindssrf --oast
+./dursgo -u http://example.com -c 10 -r 3 -s blindssrf --oast
 
 # Correct: Scan for Blind Command Injection
-./dursgo -u http://example.com -s cmdinjection --oast
+./dursgo -u http://example.com -c 10 -r 3 -s cmdinjection --oast
 
 # Avoid: Running multiple OAST scanners together may lead to correlation issues.
 # ./dursgo -u http://example.com -s blindssrf,cmdinjection --oast
 ```
 
-### Using a Configuration File
-DursGo automatically loads `config.yaml` from the current working directory if no flags are specified. The configuration in `config.yaml` serves as the default settings.
+### Scan for DOM XSS using `-render-js`
+To detect DOM-based XSS, JavaScript rendering must be enabled. This requires a headless browser (Chrome/Chromium) to be installed.
 
-Command-line flags (e.g., `-u http://new-target.com`) will **override** the corresponding values in `config.yaml` for the current scan execution.
+```bash
+# Scan for DOM XSS on a Single-Page Application (SPA)
+./dursgo -u http://spa.example.com -c 10 -r 3 -s domxss -render-js
+```
 
 ## Command-Line Options
 
@@ -115,31 +175,74 @@ Command-line flags (e.g., `-u http://new-target.com`) will **override** the corr
 | `-v`           | Enable verbose output (DEBUG level).                | `-v`                       |
 | `-vv`          | Enable trace-level output (highly verbose).         | `-vv`                      |
 
+## Available Scanners
+
+DursGo provides a variety of scanner modules. Scans can be run with one or more scanners using the `-s` flag (comma-separated), or with `-s all` to run all relevant scanners.
+
+```bash
+- `none` - A special option to perform crawling only, without vulnerability scanning.
+- `blindssrf` - Detects Blind SSRF vulnerabilities (requires `-oast` flag).
+- `cmdinjection` - Detects Command Injection vulnerabilities (supports OAST - requires `-oast` flag).
+- `domxss` - Detects DOM-Based XSS vulnerabilities (requires `--render-js` flag).
+- `bola` - Detects Broken Object Level Authorization (BOLA) vulnerabilities.
+- `cors` - Detects Cross-Origin Resource Sharing (CORS) misconfigurations.
+- `csrf` - Detects Cross-Site Request Forgery (CSRF) vulnerabilities.
+- `exposed` - Detects exposed sensitive files, directories, and directory listings.
+- `fileupload` - Detects Unrestricted File Upload vulnerabilities.
+- `graphql` - Detects vulnerabilities in GraphQL APIs (e.g., introspection, injection).
+- `idor` - Detects Insecure Direct Object Reference (IDOR) vulnerabilities.
+- `lfi` - Detects Local File Inclusion (LFI) vulnerabilities.
+- `massassignment` - Detects Mass Assignment vulnerabilities.
+- `openredirect` - Detects Open Redirect vulnerabilities.
+- `securityheaders` - Detects missing or misconfigured HTTP security headers.
+- `sqli` - Detects SQL Injection vulnerabilities.
+- `ssrf` - Detects in-band Server-Side Request Forgery (SSRF) vulnerabilities.
+- `ssti` - Detects Server-Side Template Injection (SSTI) vulnerabilities.
+- `xss` - **Runs both XSS scanners:** `xss-reflected` and `xss-stored`.
+- `xss-reflected` - Detects Reflected XSS vulnerabilities.
+- `xss-stored` - Detects Stored XSS vulnerabilities.
+```
+
+### Using a Configuration File
+DursGo automatically loads `config.yaml` from the current working directory if no flags are specified. The configuration in `config.yaml` serves as the default settings.
+
+Command-line flags (e.g., `-u http://new-target.com`) will **override** the corresponding values in `config.yaml` for the current scan execution.
+
 ## Configuration File (`config.yaml`)
 
-DursGo supports configuration via a YAML file for more complex settings, particularly for authentication.
+DursGo supports configuration via a YAML file for more complex settings, particularly for authentication. The file is organized into several sections:
 
-### Example Basic Configuration
-```yaml
-# Primary target
-target: "http://example.com"
+### General Settings
+This section contains the core parameters for the scan.
+- `target`: The URL to be scanned.
+- `concurrency`: The number of concurrent threads to use for the scan.
+- `max_depth`: The maximum depth for the crawler.
+- `scanners_to_run`: A comma-separated string of the scanners to be executed (e.g., "xss,sqli").
+- `oast`: A boolean (`true`/`false`) to enable or disable Out-of-Band Application Security Testing (OAST).
+- `render_js`: A boolean (`true`/`false`) to enable or disable JavaScript rendering in a headless browser.
+- `user_agent`: The User-Agent string to be used for all HTTP requests.
 
-# Number of concurrent workers
-concurrency: 10
-
-# List of scanners to run
-scanners_to_run: "xss,sqli,idor"
-
-# Output settings
-output:
-  verbose: false
-  format: "text"
-  output_file: "scan_results.txt"
-```
+### Output Settings
+This section controls how the scan results are reported.
+- `verbose`: A boolean (`true`/`false`) to enable or disable verbose logging.
+- `format`: The output format for the report (e.g., "json").
+- `output_file`: The name of the file where the report will be saved (e.g., "report-scan.json").
 
 ### Authentication Configuration
 
-DursGo supports multiple authentication methods. Choose the one that matches your target application.
+This section is used to configure DursGo to scan applications that require login. Only one authentication method can be active at a time.
+- `enabled`: A boolean (`true`/`false`) to enable or disable authentication for the scan.
+- `scan_idor`: A numeric user ID used by the IDOR scanner to avoid false positives.
+
+### Important Notes on Authentication:
+- **`scan_idor`:** If the `idor` scanner is enabled, ensure the `scan_idor` field is populated with the numeric ID of the authenticated user session. This is crucial for IDOR scan accuracy.
+  ```yaml
+  authentication:
+    enabled: true
+    cookie: "session=..."
+    scan_idor: 123 # The authenticated user's ID
+  ```
+- **Combination:** If multiple static authentication methods (e.g., `cookie` and `headers`) are configured, DursGo will attempt to send **both**. It is generally recommended to specify only one method.
 
 #### 1. Form-Based Authentication (Dynamic Login)
 Use this when credentials are available and DursGo can handle the login process automatically.
@@ -173,6 +276,19 @@ authentication:
     X-API-Key: "secret-api-key-12345"
 ```
 
+#### 4. Auth-Token Based Authentication (Static)
+Use this for `X-Auth-Token` or other custom token headers.
+
+```yaml
+authentication:
+  enabled: true
+  type: "header"
+  header_name: "X-Auth-Token"
+  value: "eyJhbGciOiJIUzI1Ni...[token]"
+```
+
+For more detailed information on configuring authentication, see the [Authentication Configuration Guide](README-CONFIG.md).
+
 ## JSON Report Structure
 
 When using the `--output-json` flag, DursGo generates a structured JSON file with the following main components:
@@ -182,44 +298,6 @@ When using the `--output-json` flag, DursGo generates a structured JSON file wit
 -   **`vulnerabilities`**: An array of all unique, confirmed vulnerabilities. Each vulnerability object contains detailed information such as its type, URL, parameter, payload, severity, and remediation advice.
 
 This machine-readable format is ideal for integration with CI/CD pipelines, vulnerability management systems, or custom security dashboards.
-
-#### Important Notes on Authentication:
-- **`scan_idor`:** If the `idor` scanner is enabled, ensure the `scan_idor` field is populated with the numeric ID of the authenticated user session. This is crucial for IDOR scan accuracy.
-  ```yaml
-  authentication:
-    enabled: true
-    cookie: "session=..."
-    scan_idor: 123 # The authenticated user's ID
-  ```
-- **Combination:** If multiple static authentication methods (e.g., `cookie` and `headers`) are configured, DursGo will attempt to send **both**. It is generally recommended to specify only one method.
-
-## Available Scanners
-
-DursGo provides a variety of scanner modules. Scans can be run with one or more scanners using the `-s` flag (comma-separated), or with `-s all` to run all relevant scanners.
-
-```bash
-- `none` - A special option to perform crawling only, without vulnerability scanning.
-- `blindssrf` - Detects Blind SSRF vulnerabilities (requires `-oast` flag).
-- `cmdinjection` - Detects Command Injection vulnerabilities ( OAST - requires `-oast` flag).
-- `domxss` - Detects DOM-Based XSS vulnerabilities (requires `--render-js` flag).
-- `bola` - Detects Broken Object Level Authorization (BOLA) vulnerabilities.
-- `cors` - Detects Cross-Origin Resource Sharing (CORS) misconfigurations.
-- `csrf` - Detects Cross-Site Request Forgery (CSRF) vulnerabilities.
-- `exposed` - Detects exposed sensitive files, directories, and directory listings.
-- `fileupload` - Detects Unrestricted File Upload vulnerabilities.
-- `graphql` - Detects vulnerabilities in GraphQL APIs (e.g., introspection, injection).
-- `idor` - Detects Insecure Direct Object Reference (IDOR) vulnerabilities.
-- `lfi` - Detects Local File Inclusion (LFI) vulnerabilities.
-- `massassignment` - Detects Mass Assignment vulnerabilities.
-- `openredirect` - Detects Open Redirect vulnerabilities.
-- `securityheaders` - Detects missing or misconfigured HTTP security headers.
-- `sqli` - Detects SQL Injection vulnerabilities.
-- `ssrf` - Detects in-band Server-Side Request Forgery (SSRF) vulnerabilities.
-- `ssti` - Detects Server-Side Template Injection (SSTI) vulnerabilities.
-- `xss` - Runs both XSS scanners: `xss-reflected` and `xss-stored`.
-- `xss-reflected` - Detects Reflected XSS vulnerabilities.
-- `xss-stored` - Detects Stored XSS vulnerabilities.
-```
 
 ## The DursGo Difference: Intelligence Under the Hood
 
@@ -257,8 +335,6 @@ DursGo covers a wide range of common vulnerabilities with a focus on modern thre
 
 -   **OAST (Out-of-Band Application Security Testing):** Built-in support for detecting blind vulnerabilities (like Blind SSRF and Blind Command Injection) via external interactions.
 -   **KEV Data Enrichment:** Capable of integrating CISA Known Exploited Vulnerabilities (KEV) data directly into reports, facilitating the prioritization of actively exploited vulnerabilities.
-
-
 
 ## KEV (Known Exploited Vulnerabilities) Updates
 
@@ -312,6 +388,10 @@ The following are potential areas for future development to make DursGo a more c
 
 #### b. Enhancements to Existing Scanner Modules
 
+- **Continuous Improvement:** All existing scanner modules will be continuously updated with the latest detection logic and payloads to keep pace with evolving security threats and research.
+- **IDOR Scanner:**
+  - Implement testing for IDOR in URL parameters (e.g., `?user_id=123`).
+  - Add support for non-numeric IDs, such as UUIDs.
 - **SQLi Scanner:**
   - Add more payloads for different database types (e.g., Oracle, SQLite).
   - Develop detection for out-of-band SQLi (using OAST).
@@ -321,6 +401,11 @@ The following are potential areas for future development to make DursGo a more c
 
 #### c. New Scanner Modules
 
+- **JWT Attacks:** A module to test for common JSON Web Token vulnerabilities, such as weak secrets, algorithm confusion (`none` algorithm), and signature stripping.
+- **OAuth Authentication:** A scanner to detect misconfigurations in OAuth 2.0 flows, such as improper handling of redirect URIs.
+- **HTTP Request Smuggling:** Add the capability to detect both CL.TE and TE.CL HTTP request smuggling vulnerabilities.
+- **HTTP Host Header Attacks:** A module to test for vulnerabilities related to the HTTP Host header, such as password reset poisoning and cache poisoning.
+- **Subdomain Scanner:** A module to discover and validate active subdomains for a given target, expanding the potential attack surface.
 - **XXE (XML External Entity):** Add the capability to detect XML external entity processing vulnerabilities.
 - **Deserialization:** Create a scanner to look for insecure deserialization vulnerabilities in popular platforms (e.g., Java, PHP, Python).
 - **Prototype Pollution:** A dedicated scanner for Node.js applications to detect prototype pollution vulnerabilities.
@@ -342,6 +427,37 @@ The following are potential areas for future development to make DursGo a more c
 - **API Documentation:** If DursGo is developed as a service, provide API documentation for integration with other tools.
 - **Web Dashboard:** Develop a web-based dashboard interface that allows users to run DursGo scans, view and manage results visually, and leverage an integrated LLM AI for advanced risk analysis and remediation recommendations.
 
+## FAQ
+
+<details>
+<summary>Why is the scan taking so long, especially with <code>-s all</code>?</summary>
+
+The thoroughness of the crawler, especially the "Proactive Parameter Discovery" feature, has a significant multiplicative effect on the total scan duration. The total number of tests is a product of `(URLs) x (Parameters) x (Payloads) x (Scanners)`. On large sites, this can result in a very high number of HTTP requests, leading to long scan times. This is a direct trade-off between deep, comprehensive coverage and speed. For faster scans, it is recommended to target specific scanners (e.g., `-s xss,sqli`) rather than using `-s all`.
+</details>
+
+<details>
+<summary>Why did the scanner not find a vulnerability on the login page?</summary>
+
+By default, some paths like `/login` may be ignored by certain scanners to prevent accidentally logging out an authenticated session during a scan. If a login form is the specific target for a vulnerability (like an SQL Injection bypass), ensure that the scanner's configuration does not blacklist the `/login` path. This behavior has been refined, but older versions may have more aggressive blacklisting.
+</details>
+
+<details>
+<summary>What do I need to install to use the <code>-render-js</code> or <code>-s domxss</code> flags?</summary>
+
+These features require a headless browser to execute JavaScript. Either Google Chrome or Chromium must be installed on the system. The scanner will automatically detect the installed browser.
+
+**Installation Examples:**
+- **Debian/Ubuntu:** `sudo apt-get update && sudo apt-get install -y chromium-browser`
+- **CentOS/RHEL:** `sudo yum install -y chromium`
+- **macOS (using Homebrew):** `brew install --cask google-chrome`
+</details>
+
+<details>
+<summary>How does the scanner handle false positives for vulnerabilities like IDOR or SQLi Auth Bypass?</summary>
+
+The scanner uses a baseline comparison logic to reduce false positives. For example, to test for an IDOR, it first requests an invalid object ID (e.g., `999999`) to establish an "error baseline". A vulnerability is only reported if a request to a different, valid-looking ID (e.g., `1`) is successful AND the response is different from the error baseline. A similar baseline comparison is used for the SQLi Auth Bypass scanner to differentiate between a real bypass and a normal failed login page.
+</details>
+
 ## Contributing
 
 Contributions are welcome! Please create an issue or pull request to report bugs or add new features.
@@ -355,5 +471,3 @@ Licensed under the [MIT License](LICENSE).
 This tool is for legitimate security testing purposes with permission only. Use for illegal or malicious purposes is not permitted. The user is solely responsible for their use of this tool.
 
 ---
-
-Developed with ❤️ for the Cyber Security Community
