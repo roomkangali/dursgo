@@ -1,0 +1,116 @@
+{
+  "scan_summary": {
+    "target_url": "http://testphp.vulnweb.com/",
+    "scan_start_time": "2025-08-13T15:18:55+07:00",
+    "scan_end_time": "2025-08-13T15:20:46+07:00",
+    "total_duration": "1m51s",
+    "scanners_run": [
+      "sqli"
+    ],
+    "technologies_detected": {
+      "WebServer": "nginx/1.19.0",
+      "X-Powered-By": "PHP/5.6.40-38+ubuntu20.04.1+deb.sury.org+1"
+    },
+    "total_urls_discovered": 56,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 8
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "SQL Injection (Content-Based)",
+      "URL": "http://testphp.vulnweb.com/listproducts.php?artist=2+OR+1%3D1--",
+      "Parameter": "artist",
+      "Payload": " OR 1=1--",
+      "Location": "query",
+      "Details": "Injection revealed more content. Link count ('\u003c/a\u003e') changed from 27 to 359.",
+      "severity": "High",
+      "evidence": "Link count changed from 27 to 359",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/network-attached-storage-dlink/1/?id=%27",
+      "Parameter": "id",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-3/?id=%27",
+      "Parameter": "id",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/color-printer/3/?id=%27",
+      "Parameter": "id",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-3.html?id=%27",
+      "Parameter": "id",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/web-camera-a4tech/2/?id=%27",
+      "Parameter": "id",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/artists.php?artist=1%27",
+      "Parameter": "artist",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    },
+    {
+      "VulnerabilityType": "SQL Injection (Error-Based)",
+      "URL": "http://testphp.vulnweb.com/product.php?pic=1%27",
+      "Parameter": "pic",
+      "Payload": "'",
+      "Location": "query",
+      "Details": "Response indicates possible SQL injection.",
+      "severity": "High",
+      "evidence": "The application's response was significantly different after injecting a payload, indicating a potential SQL injection vulnerability.",
+      "remediation": "Use parameterized queries (prepared statements) to prevent user input from being interpreted as SQL commands. Validate and sanitize all user input based on the expected format.",
+      "scanner_name": "Intelligent SQL Injection Scanner"
+    }
+  ]
+}

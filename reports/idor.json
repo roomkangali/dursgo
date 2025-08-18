@@ -1,0 +1,31 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.13:5000/",
+    "scan_start_time": "2025-08-13T15:38:33+07:00",
+    "scan_end_time": "2025-08-13T15:38:35+07:00",
+    "total_duration": "1s",
+    "scanners_run": [
+      "idor"
+    ],
+    "technologies_detected": {
+      "WebServer": "Werkzeug/2.3.7 Python/3.12.3"
+    },
+    "total_urls_discovered": 11,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 1
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Insecure Direct Object Reference (IDOR)",
+      "URL": "http://192.168.1.13:5000/profile/1",
+      "Parameter": "URL Path Segment #2",
+      "Payload": "1",
+      "Location": "path",
+      "Details": "As user 9999, accessed user-resource 'http://192.168.1.13:5000/profile/1'. The response was valid and different from the error page baseline, indicating access to another user's data.",
+      "severity": "High",
+      "evidence": "Response for a valid ID was different from the response for a known-invalid ID.",
+      "remediation": "Ensure that server-side authorization checks verify that the logged-in user has permission to access the requested resource ID.",
+      "scanner_name": "Insecure Direct Object Reference (IDOR) Scanner"
+    }
+  ]
+}

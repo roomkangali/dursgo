@@ -1,0 +1,191 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.9:8088/",
+    "scan_start_time": "2025-08-13T15:24:17+07:00",
+    "scan_end_time": "2025-08-13T15:24:21+07:00",
+    "total_duration": "3s",
+    "scanners_run": [
+      "exposed"
+    ],
+    "technologies_detected": {
+      "WebServer": "Apache/2.4.62 (Debian)",
+      "X-Powered-By": "PHP/8.2.29"
+    },
+    "total_urls_discovered": 10,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 19
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/tmp/",
+      "Details": "Directory http://192.168.1.9:8088/tmp/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/access.log",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/access.log is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/LICENSE",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/LICENSE is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/dev/",
+      "Details": "Directory http://192.168.1.9:8088/dev/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/phpinfo.php",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/phpinfo.php is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/admin/",
+      "Details": "Directory http://192.168.1.9:8088/admin/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/old/",
+      "Details": "Directory http://192.168.1.9:8088/old/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/id_rsa.pub",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/id_rsa.pub is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/backup/",
+      "Details": "Directory http://192.168.1.9:8088/backup/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/id_rsa",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/id_rsa is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/robots.txt",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/robots.txt is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/uploads/",
+      "Details": "Directory http://192.168.1.9:8088/uploads/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/logs/",
+      "Details": "Directory http://192.168.1.9:8088/logs/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/db.sql",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/db.sql is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/credentials.txt",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/credentials.txt is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/README.md",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/README.md is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/CHANGELOG.txt",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/CHANGELOG.txt is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Directory Listing",
+      "URL": "http://192.168.1.9:8088/test/",
+      "Details": "Directory http://192.168.1.9:8088/test/ is accessible and shows a file listing.",
+      "severity": "Low",
+      "evidence": "Common directory listing keywords found in response body.",
+      "remediation": "Disable directory listing on the server or configure access controls properly.",
+      "scanner_name": "exposed"
+    },
+    {
+      "VulnerabilityType": "Exposed Sensitive File",
+      "URL": "http://192.168.1.9:8088/sitemap.xml",
+      "Details": "Sensitive file/path http://192.168.1.9:8088/sitemap.xml is publicly accessible (Status: 200).",
+      "severity": "Low",
+      "evidence": "Resource responded with 200 OK and content was served.",
+      "remediation": "Restrict public access to sensitive files and validate file exposure using access control.",
+      "scanner_name": "exposed"
+    }
+  ]
+}
