@@ -1,4 +1,4 @@
-# 🗄️ DursGo - The Go-Powered Web Application Scanner
+# DursGo - The Go-Powered Web Application Scanner
 
 <p align="center">
   <img src="logo/dursgo-logo.png" width="750">
@@ -11,7 +11,6 @@
 <p>
     <a href="https://golang.org/doc/install"><img src="https://img.shields.io/badge/go-1.23%2B-blue.svg" alt="Go Version"></a>
     <a href="https://github.com/roomkangali/dursgo/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
-    <a href="https://github.com/roomkangali/dursgo/stargazers"><img src="https://img.shields.io/github/stars/roomkangali/dursgo.svg?style=social" alt="GitHub Stars"></a>
 </p>
 <p>
     <img src="https://img.shields.io/badge/Linux-Supported-green.svg" alt="Linux Supported">
