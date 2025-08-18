@@ -298,6 +298,8 @@ When using the `--output-json` flag, DursGo generates a structured JSON file wit
 
 This machine-readable format is ideal for integration with CI/CD pipelines, vulnerability management systems, or custom security dashboards.
 
+For more detailed information JSON Report, see the [JSON Report Structure](reports/).
+
 ## The DursGo Difference: Intelligence Under the Hood
 
 DursGo is an advanced automated scanner that combines the speed of Go with contextual scanning logic for accurate and relevant results.
