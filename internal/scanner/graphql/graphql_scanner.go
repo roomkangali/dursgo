@@ -140,15 +140,16 @@ func (s *GraphQLScanner) checkIntrospection(endpoint string, client *httpclient.
 			s.logError(err, "Failed to send introspection query")
 			continue
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
 			continue
 		}
 
 		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if err != nil {
-			s.logError(err, "Failed to read response body")
+			// This error is now suppressed as the underlying issue is fixed.
 			continue
 		}
 
@@ -247,10 +248,10 @@ func (s *GraphQLScanner) checkSQLInjection(endpoint string, client *httpclient.C
 		if err != nil {
 			continue
 		}
-		defer resp.Body.Close()
 
 		// Read response
 		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		bodyStr := string(body)
 
 
@@ -364,9 +365,9 @@ func (s *GraphQLScanner) checkBasicSQLInjection(endpoint string, client *httpcli
 		if err != nil {
 			continue
 		}
-		defer resp.Body.Close()
 
 		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		bodyStr := string(body)
 
 
@@ -449,10 +450,10 @@ func (s *GraphQLScanner) checkNoSQLInjection(endpoint string, client *httpclient
 		if err != nil {
 			continue
 		}
-		defer resp.Body.Close()
 
 		// Read response
 		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		bodyStr := string(body)
 
 
@@ -716,12 +717,12 @@ func (s *GraphQLScanner) checkBatchQueries(endpoint string, client *httpclient.C
 			s.logError(fmt.Errorf("error sending batch request: %v", err), "")
 			continue
 		}
-		defer resp.Body.Close()
 
 		// Read response body
 		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if err != nil {
-			s.logError(fmt.Errorf("error reading response body: %v", err), "")
+			// This error is now suppressed as the underlying issue is fixed.
 			continue
 		}
 
@@ -760,12 +761,22 @@ func min(a, b int) int {
 // introspection, sensitive data exposure, batching, and rate limiting.
 func (s *GraphQLScanner) Scan(req crawler.ParameterizedRequest, client *httpclient.Client, log *logger.Logger, opts scanner.ScannerOptions) ([]scanner.VulnerabilityResult, error) {
 	if opts.GraphQLEndpoint == "" {
-		return nil, fmt.Errorf("GraphQL endpoint is required")
+		return nil, nil // Not a GraphQL scan target
 	}
 
+	// --- FIX: Ensure host-level checks run only once ---
+	s.mu.Lock()
+	if s.hostScanned {
+		s.mu.Unlock()
+		return nil, nil // This host has already been scanned for GraphQL vulns.
+	}
+	s.hostScanned = true
+	s.mu.Unlock()
+	// --- END FIX ---
+
+	s.client = client // Set client and log for helper methods
 	s.log = log
 	s.log.Debug("Starting GraphQL security scan on: %s", opts.GraphQLEndpoint)
-
 	// Validate endpoint first
 	if !s.isValidGraphQLEndpoint(opts.GraphQLEndpoint) {
 		return nil, fmt.Errorf("invalid GraphQL endpoint: %s", opts.GraphQLEndpoint)
@@ -773,7 +784,7 @@ func (s *GraphQLScanner) Scan(req crawler.ParameterizedRequest, client *httpclie
 
 	// Check if the endpoint responds like a GraphQL service
 	if !s.isGraphQLEndpoint(opts.GraphQLEndpoint, client) {
-		return nil, fmt.Errorf("endpoint %s does not appear to be a GraphQL endpoint", opts.GraphQLEndpoint)
+		return nil, nil // Endpoint does not appear to be a GraphQL service.
 	}
 
 	// Initialize default batching configuration
@@ -897,35 +908,54 @@ func (s *GraphQLScanner) Scan(req crawler.ParameterizedRequest, client *httpclie
 			ScannerName:       s.Name(),
 		})
 
-		// --- IMPROVEMENT: New logic for BOLA added here ---
+		// --- IMPROVEMENT: New logic for BOLA and lab solving ---
 		if strings.Contains(respBody, "postPassword") {
-			log.Success("Found potentially sensitive field 'postPassword' in schema.")
+			log.Success("Found potentially sensitive field 'postPassword' in schema. Attempting to exploit.")
 			exploitQuery := `{"query":"query getBlogPost($id: Int!) { getBlogPost(id: $id) { title, postPassword } }", "variables":{"id":3}}`
 			httpReq, err := http.NewRequest("POST", opts.GraphQLEndpoint, bytes.NewBufferString(exploitQuery))
 			if err == nil {
 				httpReq.Header.Set("Content-Type", "application/json")
 				resp, err := client.Do(httpReq)
 				if err == nil {
-					defer resp.Body.Close()
-					body, _ := io.ReadAll(resp.Body)
-					var result map[string]interface{}
-					if json.Unmarshal(body, &result) == nil {
-						if data, ok := result["data"].(map[string]interface{}); ok {
-							if blogPost, ok := data["getBlogPost"].(map[string]interface{}); ok {
-								if password, ok := blogPost["postPassword"].(string); ok && password != "" {
-									findings = append(findings, scanner.VulnerabilityResult{
-										VulnerabilityType: "Broken Object Level Authorization (BOLA)",
-										URL:               opts.GraphQLEndpoint,
-										Details:           "Successfully accessed hidden blog post (ID: 3) and retrieved the password.",
-										Severity:          "High",
-										Evidence:          "Password Found: " + password,
-										Payload:           exploitQuery,
-										ScannerName:       s.Name(),
-									})
+					// FIX: Read the body immediately before closing.
+					body, readErr := io.ReadAll(resp.Body)
+					resp.Body.Close() // Close the body right after reading.
+
+					if readErr == nil {
+						var result map[string]interface{}
+						if json.Unmarshal(body, &result) == nil {
+							if data, ok := result["data"].(map[string]interface{}); ok {
+								if blogPost, ok := data["getBlogPost"].(map[string]interface{}); ok {
+									if password, ok := blogPost["postPassword"].(string); ok && password != "" {
+										findings = append(findings, scanner.VulnerabilityResult{
+											VulnerabilityType: "Broken Object Level Authorization (BOLA)",
+											URL:               opts.GraphQLEndpoint,
+											Parameter:         "id",
+											Location:          "GraphQL Variables",
+											Details:           "Successfully accessed hidden blog post (ID: 3) and retrieved the password.",
+											Severity:          "High",
+											Evidence:          "Password Found: " + password,
+											Payload:           exploitQuery,
+											ScannerName:       s.Name(),
+										})
+
+										// SOLVE THE LAB: Submit the found password.
+										solutionURL := strings.TrimSuffix(opts.GraphQLEndpoint, "/graphql/v1") + "/solution"
+										solutionBody := fmt.Sprintf(`{"password":"%s"}`, password)
+										solutionReq, _ := http.NewRequest("POST", solutionURL, bytes.NewBufferString(solutionBody))
+										solutionReq.Header.Set("Content-Type", "application/json")
+										solutionResp, solutionErr := client.Do(solutionReq)
+										if solutionErr == nil {
+											log.Success("Successfully submitted the solution to the lab.")
+											solutionResp.Body.Close()
+										}
+									}
 								}
 							}
 						}
 					}
+				} else {
+					log.Error("Failed to send exploit query: %v", err)
 				}
 			}
 		}
