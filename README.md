@@ -73,6 +73,14 @@ DursGo is a web application security scanner designed for penetration testing an
 </div>
 
 ---
+**LabVulnerDursGo - DursGo Vulnerability Labs**
+
+A collection of vulnerable applications to test the DursGo scanner.  
+This repository also includes video walkthroughs for each vulnerable lab, demonstrating the steps and solutions using the DursGo tool.
+
+[LabVulnerDursGo](https://github.com/roomkangali/LabVulnerDursGo)
+
+---
 
 ## 📋 Table of Contents
 
