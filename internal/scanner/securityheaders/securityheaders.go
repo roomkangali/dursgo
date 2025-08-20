@@ -175,9 +175,9 @@ func (s *SecurityHeadersScanner) Scan(req crawler.ParameterizedRequest, client *
 	s.hostsScanned[hostKey] = true
 	s.mu.Unlock()
 
-	log.Debug("Running Security Headers check on: %s", hostKey)
+	log.Debug("Running Security Headers check on: %s", req.URL)
 
-	resp, err := client.Get(hostKey)
+	resp, err := client.Get(req.URL)
 	if err != nil {
 		if resp != nil && resp.Body != nil {
 			resp.Body.Close()
@@ -186,9 +186,10 @@ func (s *SecurityHeadersScanner) Scan(req crawler.ParameterizedRequest, client *
 	}
 	defer resp.Body.Close()
 
-	// Check if this is a WordPress site first
-	if isWordPressSite(resp) {
-		log.Debug("WordPress site detected, skipping security headers check for %s", hostKey)
+	// Only analyze successful responses (2xx status codes).
+	// This prevents false positives on 404 pages or server errors.
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Debug("Skipping security headers check for non-successful status code %d on %s", resp.StatusCode, req.URL)
 		return nil, nil
 	}
 
@@ -209,6 +210,13 @@ func (s *SecurityHeadersScanner) Scan(req crawler.ParameterizedRequest, client *
 	for _, headerCheck := range payloads.SecurityHeaderChecks {
 		headerName := strings.ToLower(headerCheck.Name)
 		headerValue, headerExists := headers[headerName]
+
+		// Special handling for CSP: accept 'report-only' header as present.
+		if headerName == "content-security-policy" {
+			if _, reportOnlyExists := headers["content-security-policy-report-only"]; reportOnlyExists {
+				headerExists = true
+			}
+		}
 
 		// Skip if header is only for HTTPS and we're not on HTTPS
 		if headerCheck.CheckOnHTTPSOnly && parsedURL.Scheme != "https" {
@@ -237,10 +245,10 @@ func (s *SecurityHeadersScanner) Scan(req crawler.ParameterizedRequest, client *
 		if !headerExists {
 			findings = append(findings, scanner.VulnerabilityResult{
 				VulnerabilityType: "Missing Security Header",
-				URL:               hostKey,
+				URL:               req.URL,
 				Details: fmt.Sprintf(
-					"Header '%s' not found. Severity: %s. Description: %s",
-					headerCheck.Name, headerCheck.Severity, headerCheck.Description,
+					"Header '%s' not found. %s",
+					headerCheck.Name, headerCheck.Description,
 				),
 				Payload:     headerCheck.Remediation,
 				Severity:    headerCheck.Severity,
@@ -253,10 +261,10 @@ func (s *SecurityHeadersScanner) Scan(req crawler.ParameterizedRequest, client *
 			if isInsecureHeaderValue(headerName, headerValue) {
 				findings = append(findings, scanner.VulnerabilityResult{
 					VulnerabilityType: "Misconfigured Security Header",
-					URL:               hostKey,
+					URL:               req.URL,
 					Details: fmt.Sprintf(
-						"Header '%s' found with potentially insecure value '%s'. Severity: %s.",
-						headerCheck.Name, headerValue, headerCheck.Severity,
+						"Header '%s' found with potentially insecure value '%s'. %s",
+						headerCheck.Name, headerValue, headerCheck.Description,
 					),
 					Payload:     headerCheck.Remediation,
 					Severity:    headerCheck.Severity,
@@ -308,7 +316,13 @@ func isInsecureHeaderValue(headerName, value string) bool {
 	case "x-content-type-options":
 		return !strings.EqualFold(value, "nosniff")
 	case "x-xss-protection":
-		return value == "" || !strings.Contains(strings.ToLower(value), "1; mode=block")
+		// "0" is a valid way to disable the header, especially with a strong CSP.
+		// "1; mode=block" is the strongest setting. Other values are less secure.
+		val := strings.ToLower(value)
+		if val == "0" || strings.Contains(val, "1; mode=block") {
+			return false
+		}
+		return true
 	case "strict-transport-security":
 		return value == "" || !strings.Contains(strings.ToLower(value), "max-age=")
 	case "content-security-policy":
