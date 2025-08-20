@@ -662,6 +662,9 @@ func main() {
 				if vuln.Payload != "" {
 					log.Success("  Payload/Info: %s", vuln.Payload)
 				}
+				if vuln.Severity != "" {
+					log.Success("  Severity: %s", vuln.Severity)
+				}
 				log.Success("  Details: %s", vuln.Details)
 			}
 		}
