@@ -39,6 +39,87 @@ func (s *OpenRedirectScanner) Scan(req crawler.ParameterizedRequest, client *htt
 	}
 	originalHost := originalRequestParsedURL.Host
 
+	// --- Path-Based Open Redirect Scan ---
+	for _, orPayload := range payloads.OpenRedirectPayloads {
+		// We only test for payloads that start with // or \\, as these can manipulate the host
+		if strings.HasPrefix(orPayload, "//") || strings.HasPrefix(orPayload, "\\\\") {
+			parsedURL, err := url.Parse(req.URL)
+			if err != nil {
+				continue // Skip malformed URLs from crawler
+			}
+
+			// Construct test URL by combining scheme, host, and payload.
+			// e.g., https://example.com + //evil.com -> https://example.com//evil.com
+			// This specifically tests for path-based redirects at the root.
+			testURL := fmt.Sprintf("%s://%s%s", parsedURL.Scheme, parsedURL.Host, orPayload)
+
+			httpRequest, reqErr := http.NewRequest("GET", testURL, nil)
+			if reqErr != nil {
+				continue
+			}
+
+			originalCheckRedirectFunc := client.TemporarilyDisableRedirects()
+			resp, err := client.Do(httpRequest)
+			client.RestoreRedirects(originalCheckRedirectFunc)
+
+			if resp != nil {
+				defer resp.Body.Close()
+			}
+
+			if err != nil {
+				if urlErr, ok := err.(*url.Error); !ok || urlErr.Err != http.ErrUseLastResponse {
+					continue // Skip non-redirect errors
+				}
+			}
+			if resp == nil {
+				continue
+			}
+
+			if resp.StatusCode >= 300 && resp.StatusCode < 400 {
+				locationHeader := resp.Header.Get("Location")
+				if locationHeader != "" {
+					redirectURL, parseErr := originalRequestParsedURL.Parse(locationHeader)
+					if parseErr == nil {
+						// For path-based, the payload itself is the redirect target.
+						// We need to parse the payload to get its host.
+						payloadTargetURL, payloadParseErr := url.Parse(orPayload)
+						if payloadParseErr != nil {
+							// Handle cases like "\\evil.com" which might not parse as a valid URL
+							// by trying to parse them as if they were protocol-relative.
+							if strings.HasPrefix(orPayload, "\\\\") {
+								payloadTargetURL, _ = url.Parse("http:" + strings.Replace(orPayload, "\\", "/", -1))
+							} else {
+								continue
+							}
+						}
+
+						if redirectURL.Host != "" && payloadTargetURL != nil && payloadTargetURL.Host != "" &&
+							strings.Contains(strings.ToLower(redirectURL.Host), strings.ToLower(payloadTargetURL.Host)) &&
+							strings.ToLower(redirectURL.Host) != strings.ToLower(originalHost) {
+
+							details := fmt.Sprintf("Path-based redirect to external URL '%s' (Host: %s) which matches payload host '%s'. Original host: '%s'. Status: %d.",
+								locationHeader, redirectURL.Host, payloadTargetURL.Host, originalHost, resp.StatusCode)
+
+							findings = append(findings, scanner.VulnerabilityResult{
+								VulnerabilityType: "Open Redirect (Path-based)",
+								URL:               testURL,
+								Parameter:         "N/A (Path Manipulation)",
+								Payload:           orPayload,
+								Location:          "path",
+								Details:           details,
+								Severity:          "medium",
+								Evidence:          locationHeader,
+								Remediation:       "Avoid using user input in redirect destinations. Use allow-lists or enforce strict validation. Sanitize URL paths.",
+								ScannerName:       "openredirect",
+							})
+						}
+					}
+				}
+			}
+		}
+	}
+	// --- End of Path-Based Scan ---
+
 	if contains(req.ParamLocations, "query") || contains(req.ParamLocations, "body") {
 		for _, paramName := range req.ParamNames {
 			for _, orPayload := range payloads.OpenRedirectPayloads {
@@ -147,6 +228,7 @@ func buildRequest(req crawler.ParameterizedRequest, paramName, payload string) (
 	formData.Set(paramName, payload)
 	return req.URL, strings.NewReader(formData.Encode()), "POST"
 }
+
 // contains checks if a string is present in a slice of strings.
 func contains(s []string, str string) bool {
 	for _, v := range s {

