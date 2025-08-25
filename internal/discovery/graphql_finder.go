@@ -5,6 +5,7 @@ import (
 	"Dursgo/internal/logger"
 	"Dursgo/internal/payloads"
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
@@ -50,13 +51,29 @@ func (f *GraphQLFinder) FindEndpoint(targetDomain string) string {
 			continue // Skip if HTTP request fails.
 		}
 
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		resp.Body.Close() // Close response body after reading.
-		bodyString := string(bodyBytes)
+		// --- Stricter GraphQL Endpoint Validation ---
 
-		// Check if the response body contains known GraphQL keywords.
-		for _, keyword := range payloads.GraphQLResponseKeywords {
-			if strings.Contains(bodyString, keyword) {
+		// 1. Check for "application/json" Content-Type header.
+		contentType := resp.Header.Get("Content-Type")
+		if !strings.Contains(strings.ToLower(contentType), "application/json") {
+			resp.Body.Close()
+			continue // Not a JSON response, highly unlikely to be GraphQL.
+		}
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		resp.Body.Close() // Close body after reading.
+		if err != nil {
+			continue
+		}
+
+		// 2. Check if the response body is valid JSON and contains characteristic keys.
+		var result map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &result); err == nil {
+			// 3. A valid GraphQL response will have either a "data" or "errors" key.
+			_, hasData := result["data"]
+			_, hasErrors := result["errors"]
+
+			if hasData || hasErrors {
 				f.log.Success("GraphQL endpoint confirmed at: %s", testURL)
 				return testURL // Success! Return the discovered URL.
 			}
