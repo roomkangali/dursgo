@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"Dursgo/internal/ai" // Import the new AI package
 	"Dursgo/internal/config"
 	"Dursgo/internal/crawler"
 	"Dursgo/internal/discovery"
@@ -110,7 +111,7 @@ func main() {
 	// Define command-line flags.
 	var targetURLStr, scannersToRunStr, jsonOutputFile string
 	var concurrency, maxRetries, delay, maxDepth int
-	var verbose, trace, oast, enableEnrichment, updateKEV, renderJS bool
+	var verbose, trace, oast, enableEnrichment, updateKEV, renderJS, enableAI bool
 
 	flag.StringVar(&targetURLStr, "u", cfg.Target, "Target URL for scanning")
 	flag.StringVar(&scannersToRunStr, "s", cfg.Scanners, "Comma-separated list of scanners to run (e.g., xss,sqli)")
@@ -122,6 +123,7 @@ func main() {
 	flag.StringVar(&jsonOutputFile, "output-json", "", "Path to save the report file in JSON format")
 	flag.BoolVar(&renderJS, "render-js", cfg.RenderJS, "Enable JavaScript rendering for crawling SPAs")
 	flag.BoolVar(&enableEnrichment, "enrich", false, "Enable vulnerability enrichment with CISA KEV data")
+	flag.BoolVar(&enableAI, "enable-ai", cfg.AI.Enabled, "Enable AI-powered vulnerability analysis")
 	flag.BoolVar(&updateKEV, "update-kev", false, "Force update CISA KEV catalog and exit")
 	flag.BoolVar(&verbose, "v", cfg.Output.Verbose, "Enable verbose output (DEBUG level)")
 	flag.BoolVar(&trace, "vv", false, "Enable trace-level output (highly verbose)")
@@ -150,6 +152,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  -oast\n    \tEnable OAST for blind vulnerabilities (e.g., Blind SSRF, Blind Command Injection)\n")
 		fmt.Fprintf(os.Stderr, "  -render-js\n    \tEnable JavaScript rendering via headless browser (required for 'domxss' scanner)\n")
 		fmt.Fprintf(os.Stderr, "  -enrich\n    \tEnable vulnerability enrichment with CISA KEV data\n")
+		fmt.Fprintf(os.Stderr, "  --enable-ai\n    \tEnable AI-powered analysis for found vulnerabilities\n")
 
 		fmt.Fprintf(os.Stderr, "\nOUTPUT & REPORTING:\n")
 		fmt.Fprintf(os.Stderr, "  -output-json string\n    \tPath to save the report file in JSON format (e.g., report.json)\n")
@@ -174,6 +177,12 @@ func main() {
 
 	// Parse all defined flags.
 	flag.Parse()
+
+	// Synchronize command-line flags with the loaded configuration struct.
+	// This ensures flags override the YAML file settings.
+	if enableAI {
+		cfg.AI.Enabled = true
+	}
 
 	// Determine if the run is command-line driven (-u flag is present).
 	// If not, and no output file is specified via flags, use the one from config.yaml.
@@ -350,14 +359,14 @@ func main() {
 
 	// Initialize scanner options with collected information.
 	scannerOptions := scanner.ScannerOptions{
-		Concurrency:        concurrency,        // Number of concurrent scan workers.
-		OASTDomain:         oastDomain,         // Domain for OAST interactions.
+		Concurrency:        concurrency,         // Number of concurrent scan workers.
+		OASTDomain:         oastDomain,          // Domain for OAST interactions.
 		OASTCorrelationMap: &oastCorrelationMap, // Map to correlate OAST interactions.
-		Fingerprint:        fingerprintResult,  // Detected technologies.
-		UserID:             currentUserID,      // User ID for IDOR scanning.
-		Renderer:           rend,               // Headless browser renderer.
-		Client:             httpClient,         // HTTP client for requests.
-		GraphQLEndpoint:    graphQLEndpoint,    // Discovered GraphQL endpoint.
+		Fingerprint:        fingerprintResult,   // Detected technologies.
+		UserID:             currentUserID,       // User ID for IDOR scanning.
+		Renderer:           rend,                // Headless browser renderer.
+		Client:             httpClient,          // HTTP client for requests.
+		GraphQLEndpoint:    graphQLEndpoint,     // Discovered GraphQL endpoint.
 	}
 
 	// Initialize the crawler with the authenticated HTTP client.
@@ -496,7 +505,6 @@ func main() {
 			}
 		}
 	}
-
 
 	// Declare a slice to store all discovered vulnerabilities.
 	var allVulnerabilities []scanner.VulnerabilityResult
@@ -748,6 +756,37 @@ func main() {
 							log.Error("Failed to enrich vulnerabilities: %v", err)
 						}
 					}
+				}
+			}
+
+			// Analyze vulnerabilities with AI if enabled.
+			if cfg.AI.Enabled {
+				log.Info("Analyzing vulnerabilities with AI...")
+				aiClient, err := ai.NewAIClient(&cfg.AI)
+				if err != nil {
+					log.Error("Failed to initialize AI client: %v", err)
+				} else {
+					// Create a new slice for vulnerabilities that include AI analysis.
+					analyzedVulns := make([]scanner.VulnerabilityResult, len(enrichedVulns))
+					var wg sync.WaitGroup
+					for i, vuln := range enrichedVulns {
+						wg.Add(1)
+						go func(index int, v scanner.VulnerabilityResult) {
+							defer wg.Done()
+							log.Debug("Sending vulnerability to AI for analysis: %s on %s", v.VulnerabilityType, v.URL)
+							analysis, err := aiClient.AnalyzeVulnerability(context.Background(), v)
+							if err != nil {
+								log.Error("Failed to analyze vulnerability with AI: %v", err)
+								analyzedVulns[index] = v // Keep original vuln on error
+							} else {
+								v.AIAnalysis = analysis
+								analyzedVulns[index] = v
+								log.Info("Successfully received AI analysis for %s on %s", v.VulnerabilityType, v.URL)
+							}
+						}(i, vuln)
+					}
+					wg.Wait()
+					enrichedVulns = analyzedVulns // Replace with the analyzed results.
 				}
 			}
 

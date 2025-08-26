@@ -13,6 +13,14 @@ type OutputConfig struct {
 	Verbose    bool   `yaml:"verbose"`     // Enable verbose logging.
 }
 
+// AIConfig holds configuration for LLM integration.
+type AIConfig struct {
+	Enabled  bool   `yaml:"enabled"`  // Enable or disable AI analysis.
+	Provider string `yaml:"provider"` // The LLM provider (e.g., "openai", "gemini").
+	APIKey   string `yaml:"api_key"`  // The API key for the provider.
+	Model    string `yaml:"model"`    // The specific model to use (e.g., "gpt-4-turbo").
+}
+
 // Config is the main struct to hold all configuration data from the YAML file.
 type Config struct {
 	Target      string   `yaml:"target"`          // Target URL for scanning.
@@ -27,6 +35,9 @@ type Config struct {
 
 	// UserAgent field allows specifying a custom User-Agent header.
 	UserAgent string `yaml:"user_agent"`
+
+	// AI configuration settings.
+	AI AIConfig `yaml:"ai"`
 
 	// Output configuration settings.
 	Output OutputConfig `yaml:"output"`
@@ -47,9 +58,9 @@ type Config struct {
 		ScanIDOR int `yaml:"scan_idor"`
 
 		// Fields for backward compatibility with old config format.
-		Type       string `yaml:"type,omitempty"`       // Old authentication type (e.g., "header").
+		Type       string `yaml:"type,omitempty"`        // Old authentication type (e.g., "header").
 		HeaderName string `yaml:"header_name,omitempty"` // Old header name.
-		Value      string `yaml:"value,omitempty"`      // Old header value.
+		Value      string `yaml:"value,omitempty"`       // Old header value.
 	} `yaml:"authentication"`
 }
 
