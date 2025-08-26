@@ -1,0 +1,33 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.7:8088/ssrf/",
+    "scan_start_time": "2025-08-26T08:47:27-04:00",
+    "scan_end_time": "2025-08-26T08:47:34-04:00",
+    "total_duration": "8s",
+    "scanners_run": [
+      "ssrf"
+    ],
+    "technologies_detected": {
+      "WebServer": "Apache/2.4.65 (Debian)",
+      "X-Powered-By": "PHP/8.2.29"
+    },
+    "total_urls_discovered": 1,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 1
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Server-Side Request Forgery (SSRF)",
+      "URL": "http://192.168.1.7:8088/ssrf/index.php?url=http%3A%2F%2Fexample.com",
+      "Parameter": "url",
+      "Payload": "http://example.com",
+      "Location": "body",
+      "Details": "Response from target URL (http://192.168.1.7:8088/ssrf/index.php?url=http%3A%2F%2Fexample.com, Status: 200) contained keyword 'Example Domain' when testing SSRF payload 'http://example.com'.",
+      "severity": "high",
+      "evidence": "http://example.com",
+      "remediation": "Whitelist allowed URLs, avoid user-controlled input in server-side requests, and implement SSRF protection libraries or firewalls.",
+      "scanner_name": "ssrf",
+      "ai_analysis": "**Root Cause:** The application allows a user-controlled URL to be passed to a server-side function that fetches content from that URL. This enables an attacker to make requests to internal resources or external endpoints on behalf of the server, potentially exposing sensitive information or performing unauthorized actions.\n\n**Recommendation:** Implement a robust allow list of approved domains and protocols, and strictly validate the user-supplied URL against it before making the request.  If possible, avoid using user-supplied URLs directly and instead use a predefined key or identifier that maps to an internal or external URL.\n\n**Code Example (if relevant):**\n```php\n\u003c?php\n\n$url = $_GET['url'];\n\n// **Vulnerable Code (Example):**\n// $response = file_get_contents($url);\n\n// **Secure Code (Example):**\n$allowed_hosts = ['example.com', 'api.example.com'];\n$parsed_url = parse_url($url);\n\nif ($parsed_url \u0026\u0026 isset($parsed_url['host']) \u0026\u0026 in_array($parsed_url['host'], $allowed_hosts) \u0026\u0026 isset($parsed_url['scheme']) \u0026\u0026 $parsed_url['scheme'] === 'http') {\n    $response = file_get_contents($url);\n    echo $response;\n} else {\n    echo \"Invalid URL\";\n}\n\n?\u003e\n```\n"
+    }
+  ]
+}

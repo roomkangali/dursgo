@@ -11,6 +11,7 @@
 <p>
     <a href="https://golang.org/doc/install"><img src="https://img.shields.io/badge/go-1.23%2B-blue.svg" alt="Go Version"></a>
     <a href="https://github.com/roomkangali/dursgo/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+    <img src="https://img.shields.io/badge/AI-Powered-purple.svg" alt="AI Powered">
 </p>
 <p>
     <img src="https://img.shields.io/badge/Linux-Supported-green.svg" alt="Linux Supported">
@@ -22,25 +23,26 @@
 
 # DursGo - Web Application Security Scanner
 
-DursGo is a web application security scanner designed for penetration testing and automated security audits. Built with Go, DursGo offers high-performance and flexible security scanning capabilities.
+DursGo is a web application security scanner designed for penetration testing and automated security audits. Built with Go, DursGo combines high-performance scanning with **AI-powered analysis** to deliver intelligent and actionable security insights.
 
 ---
-
+<td align="center" valign="top">
+        <strong>Scan with AI-Powered Analysis</strong>
 <div align="center">
   <table>
     <tr>
       <td align="center" valign="top">
-        <strong>DEMO SCAN - VulnLab</strong>
+        <strong>Demo AI-Powered Analysis Part 1</strong>
         <br><br>
-        <a href="https://www.youtube.com/watch?v=3lTLDSuS99A" target="_blank">
-          <img src="https://img.youtube.com/vi/3lTLDSuS99A/hqdefault.jpg" alt="Demo 1" width="100%"/>
+        <a href="https://www.youtube.com/watch?v=kpJS-C-ocLA" target="_blank">
+          <img src="https://img.youtube.com/vi/kpJS-C-ocLA/hqdefault.jpg" alt="Demo 1" width="100%"/>
         </a>
       </td>
       <td align="center" valign="top">
-        <strong>DEMO SCAN - Test site for Acunetix WVS.</strong>
+        <strong>Demo AI-Powered Analysis Part 2</strong>
         <br><br>
-        <a href="https://www.youtube.com/watch?v=BQ3sim08V-M" target="_blank">
-          <img src="https://img.youtube.com/vi/BQ3sim08V-M/hqdefault.jpg" alt="Demo 2" width="100%"/>
+        <a href="https://www.youtube.com/watch?v=n1YL1Kxq3Rc" target="_blank">
+          <img src="https://img.youtube.com/vi/n1YL1Kxq3Rc/hqdefault.jpg" alt="Demo 2" width="100%"/>
         </a>
       </td>
     </tr>
@@ -119,6 +121,7 @@ This repository also includes video walkthroughs for each vulnerable lab, demons
 - **Accurate Finding Deduplication:** Presents clean, unique findings by normalizing and deduplicating results.
 - **OAST (Out-of-Band) Integration:** Detects blind vulnerabilities through out-of-band verification.
 - **CISA KEV Enrichment:** Enriches findings with context from the CISA Known Exploited Vulnerabilities (KEV) catalog.
+- **AI-Powered Analysis:** Integrates with LLMs (Gemini, Groq) to provide detailed analysis, root cause summaries, and specific code remediation advice for discovered vulnerabilities.
 - **Flexible Configuration:** Highly customizable via both YAML configuration files and command-line flags.
 - **High-Performance Engine:** Lightweight and fast, leveraging the performance of Go.
 
@@ -157,8 +160,8 @@ Dursgo follows a systematic, multi-stage workflow to ensure comprehensive covera
     go build -o dursgo ./cmd/dursgo
     ```
 
-3.  **(Optional) Move the Binary to the System PATH:**
-    To allow `dursgo` to be executed from any directory, the compiled binary can be moved to a location within the system's PATH.
+3.  **(Optional) Copy the Binary to the System PATH:**
+    To allow `dursgo` to be executed from any directory, the compiled binary can be copy to a location within the system's PATH.
     ```bash
     # For Linux/macOS
     sudo cp dursgo /usr/local/bin/
@@ -211,6 +214,16 @@ To detect DOM-based XSS, JavaScript rendering must be enabled. This requires a h
 ./dursgo -u http://spa.example.com -c 10 -r 3 -s domxss -render-js
 ```
 
+### Scan with AI-Powered Analysis
+To enrich findings with analysis from an LLM, use the `--enable-ai` flag. This requires the `ai` section to be configured in `config.yaml`.
+
+**Note:** The `--enable-ai` flag must be used in conjunction with the `-output-json` flag, as the AI analysis is only added to the JSON report file.
+
+```bash
+# Run an SSRF scan and get AI-powered analysis for any findings
+./dursgo -u http://example.com/ssrf-vuln c 10 -r 3 -s ssrf --enable-ai -output-json report.json
+```
+
 ## Command-Line Options
 
 | Flag           | Description                                         | Example                    |
@@ -222,6 +235,7 @@ To detect DOM-based XSS, JavaScript rendering must be enabled. This requires a h
 | `-d`           | Maximum crawl depth.                                | `-d 3`                     |
 | `-delay`       | Delay between requests in milliseconds (ms).        | `-delay 100`               |
 | `-enrich`      | Enable vulnerability enrichment with CISA KEV data. | `-enrich`                  |
+| `--enable-ai`  | Enable AI analysis for found vulnerabilities.       | `--enable-ai`              |
 | `-oast`        | Enable OAST (Out-of-Band) for blind vulnerabilities.| `-oast`                    |
 | `-output-json` | Path to save the report file in JSON format.        | `-output-json result.json` |
 | `-r`           | Maximum number of retries for failed requests.      | `-r 3`                     |
@@ -258,6 +272,31 @@ DursGo provides a variety of scanner modules. Scans can be run with one or more 
 - `xss-stored` - Detects Stored XSS vulnerabilities.
 ```
 
+---
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" valign="top">
+        <strong>DEMO SCAN - VulnLab</strong>
+        <br><br>
+        <a href="https://www.youtube.com/watch?v=3lTLDSuS99A" target="_blank">
+          <img src="https://img.youtube.com/vi/3lTLDSuS99A/hqdefault.jpg" alt="Demo 1" width="100%"/>
+        </a>
+      </td>
+      <td align="center" valign="top">
+        <strong>DEMO SCAN - Test site for Acunetix WVS.</strong>
+        <br><br>
+        <a href="https://www.youtube.com/watch?v=BQ3sim08V-M" target="_blank">
+          <img src="https://img.youtube.com/vi/BQ3sim08V-M/hqdefault.jpg" alt="Demo 2" width="100%"/>
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
 ### Using a Configuration File
 DursGo automatically loads `config.yaml` from the current working directory if no flags are specified. The configuration in `config.yaml` serves as the default settings.
 
@@ -276,6 +315,13 @@ This section contains the core parameters for the scan.
 - `oast`: A boolean (`true`/`false`) to enable or disable Out-of-Band Application Security Testing (OAST).
 - `render_js`: A boolean (`true`/`false`) to enable or disable JavaScript rendering in a headless browser.
 - `user_agent`: The User-Agent string to be used for all HTTP requests.
+
+### AI (LLM) Integration Settings
+This section configures the optional AI-powered analysis feature.
+- `enabled`: A boolean (`true`/`false`) to enable or disable AI analysis. Can be overridden by the `--enable-ai` flag.
+- `provider`: The LLM provider to use. Supported: `"gemini"`, `"groq"`, `"openai"`.
+- `api_key`: Your API key for the selected provider.
+- `model`: The specific model name to use (e.g., `"gemini-2.0-flash"`, `"meta-llama/llama-4-scout-17b-16e-instruct"`).
 
 ### Output Settings
 This section controls how the scan results are reported.
@@ -350,7 +396,7 @@ When using the `--output-json` flag, DursGo generates a structured JSON file wit
 
 -   **`scan_summary`**: Contains metadata about the scan, including the target URL, start/end times, total duration, scanners run, technologies detected, and total counts of discovered URLs and vulnerabilities.
 -   **`discovered_endpoints`**: A list of all unique URLs and their parameters found by the crawler. This provides a complete overview of the application's attack surface. This section is primarily populated when running in crawling-only mode (`-s none`).
--   **`vulnerabilities`**: An array of all unique, confirmed vulnerabilities. Each vulnerability object contains detailed information such as its type, URL, parameter, payload, severity, and remediation advice.
+-   **`vulnerabilities`**: An array of all unique, confirmed vulnerabilities. Each vulnerability object contains detailed information such as its type, URL, parameter, payload, severity, and remediation advice. If AI analysis is enabled, this object will also contain an `ai_analysis` field with a Markdown-formatted summary from the LLM.
 
 This machine-readable format is ideal for integration with CI/CD pipelines, vulnerability management systems, or custom security dashboards.
 
@@ -403,44 +449,18 @@ DursGo can integrate KEV data from CISA to check for known exploited vulnerabili
 
 ## Development Roadmap
 
-This document outlines the current feature status and future development plans for the DursGo security scanner.
+This document outlines the future development plans for the DursGo security scanner.
 
-### 1. IDOR (Insecure Direct Object Reference) Scanner
-
-#### Current Status
-
-The IDOR scanner currently has an intelligent and reliable implementation for **URL path-based IDOR**.
-
-- **Strengths:**
-  - **Baseline Comparison Logic:** Uses a request to an invalid ID (e.g., 999999) to establish an "error baseline". A vulnerability is only reported if a request to another ID (e.g., 2) is successful **AND** differs from this baseline, making it highly effective at reducing false positives.
-  - **Authentication Context:** Requires `scan_idor` in `config.yaml` to ensure scans are performed within a valid user session.
-  - **Numeric ID Detection:** Automatically detects and tests any numeric segment within a URL path (e.g., `/users/123/orders`).
-
-- **Limitations:**
-  - **Path-Based Only:** Cannot yet test for IDOR in URL parameters (e.g., `?user_id=123`).
-  - **Numeric IDs Only:** Cannot yet test for non-numeric IDs like UUIDs (`a1b2-c3d4-e5f6`).
-
-#### Next Steps
-
-##### a. Implement Parameter-Based IDOR Scanning
-This is the top priority for the IDOR scanner.
-- **Objective:** Enable the currently stubbed `testParamsForIDOR` function.
-- **Logic:**
-  1. Use the `CommonIDParameterNames` list from `idor_definitions.go` to identify relevant parameters (e.g., `user_id`, `message_id`, `product_id`).
-  2. Implement the same baseline comparison logic as the path-based scanner for high accuracy.
-  3. Test parameters in both GET (query string) and POST (form body) requests.
-
-##### b. Support for Non-Numeric IDs (UUIDs & GUIDs)
-- **Objective:** Expand ID detection capabilities to include non-numeric formats.
-- **Logic:**
-  1. Update detection logic in both path and parameter scanners to recognize UUID/GUID patterns (e.g., `[a-f0-9]{8}-[a-f0-9]{4}-...`).
-  2. Devise a mechanism to generate or guess other valid non-numeric IDs for testing, as simple enumeration (like 1, 2, 3) will not work. This may require additional configuration.
-
-### 2. General Roadmap for DursGo
+### General Roadmap for DursGo
 
 The following are potential areas for future development to make DursGo a more comprehensive and leading-edge scanner.
 
-#### a. API Scanning Enhancements
+#### a. LLM & AI Integration Enhancements
+- **Current Support:** Dursgo currently supports AI-powered vulnerability analysis using **Gemini** and **Groq** (via an OpenAI-compatible API).
+- **Future Support:** Future development will focus on adding direct support for more providers like **OpenAI**, **Anthropic**, and local models via **Ollama**.
+- **AI-Powered Scanning:** A major planned feature is the "AI-Powered Payload Generation" scanner, which will use LLMs to dynamically create novel test payloads, moving beyond static payload lists.
+
+#### b. API Scanning Enhancements
 - **OpenAPI/Swagger Support:** Implement the ability to parse OpenAPI (v2/v3) and Swagger specifications. This would allow DursGo to automatically discover all API endpoints, parameters, and expected data types, enabling much more comprehensive and targeted API security testing beyond what the crawler can find.
 
 #### b. Enhancements to Existing Scanner Modules

@@ -1,0 +1,71 @@
+{
+  "scan_summary": {
+    "target_url": "http://192.168.1.7:4000/",
+    "scan_start_time": "2025-08-26T08:46:51-04:00",
+    "scan_end_time": "2025-08-26T08:47:02-04:00",
+    "total_duration": "10s",
+    "scanners_run": [
+      "graphql"
+    ],
+    "technologies_detected": {
+      "X-Powered-By": "Express"
+    },
+    "total_urls_discovered": 1,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 4
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "SQL Injection",
+      "URL": "http://192.168.1.7:4000/graphql",
+      "Parameter": "query",
+      "Payload": "Detected REST API SQL Injection in search at http://192.168.1.7:4000/api/vulnerable/search with pattern: vulnerable",
+      "Location": "query",
+      "Details": "SQL Injection detected",
+      "severity": "High",
+      "evidence": "Detected REST API SQL Injection in search at http://192.168.1.7:4000/api/vulnerable/search with pattern: vulnerable",
+      "remediation": "Use parameterized queries or prepared statements. Validate and sanitize all user inputs. Implement proper input validation and output encoding.",
+      "scanner_name": "GraphQL Scanner",
+      "ai_analysis": "**Root Cause:** The `/graphql` endpoint is vulnerable to SQL injection via the `query` parameter. User-supplied input within the GraphQL query is being directly concatenated into a SQL query without proper sanitization or parameterization. This allows attackers to inject arbitrary SQL code, potentially compromising the database.\n\n**Recommendation:** Implement parameterized queries or prepared statements when constructing SQL queries within the GraphQL resolvers.  Alternatively, utilize an ORM that provides automatic escaping and parameterization to prevent SQL injection.  Validate and sanitize all user input used within the GraphQL query, even if parameterization is used as a defense-in-depth measure. Consider using a GraphQL security linter to identify potentially vulnerable query patterns.\n\n**Code Example (if relevant):**\n```python\n# Assuming Python with SQLAlchemy ORM\nfrom sqlalchemy import create_engine, text\nfrom sqlalchemy.orm import sessionmaker\n\n# Vulnerable Code (example):\ndef search_vulnerable(search_term):\n  engine = create_engine('postgresql://user:password@host:port/database')\n  Session = sessionmaker(bind=engine)\n  session = Session()\n\n  # VULNERABLE: Directly embedding user input into the SQL query\n  query = \"SELECT * FROM products WHERE name LIKE '%\" + search_term + \"%'\"\n  result = session.execute(text(query))\n  return result.fetchall()\n\n# Secure Code (example):\ndef search_safe(search_term):\n  engine = create_engine('postgresql://user:password@host:port/database')\n  Session = sessionmaker(bind=engine)\n  session = Session()\n\n  # SAFE: Using parameterized query\n  query = text(\"SELECT * FROM products WHERE name LIKE :search_term\")\n  result = session.execute(query, {\"search_term\": f\"%{search_term}%\"})\n  return result.fetchall()\n```\n"
+    },
+    {
+      "VulnerabilityType": "GraphQL Introspection Enabled",
+      "URL": "http://192.168.1.7:4000/graphql",
+      "Parameter": "query",
+      "Payload": "{__schema{types{name}}}",
+      "Location": "query",
+      "Details": "GraphQL Introspection is enabled. This can leak sensitive information about the API schema, including all available queries, mutations, and types.",
+      "severity": "Medium",
+      "evidence": "{\"data\":{\"__schema\":{\"types\":[{\"name\":\"User\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":null,\"kind\":\"NON_NULL\",\"ofType\":{\"name\":\"ID\",\"kind\":\"SCALAR\"}}},{\"name\":\"username\",\"type\":{\"name\":null,\"kind\":\"NON_NU... [truncated]",
+      "remediation": "Disable introspection in production or restrict it to authenticated users. Consider using graphql-disable-introspection for Apollo Server or disable introspection in your GraphQL server configuration.",
+      "scanner_name": "GraphQL Scanner",
+      "ai_analysis": "**Root Cause:** The GraphQL server has introspection enabled, allowing anyone to query the schema and discover all available types, queries, mutations, and other details. This exposes the API's internal structure.\n\n**Recommendation:** Disable introspection in production environments. Restrict access to introspection queries to authorized users or non-production environments only.\n\n**Code Example (if relevant):**\n```javascript\n// Example using Apollo Server in Node.js\n\nconst { ApolloServer } = require('apollo-server');\nconst { ApolloServerPluginLandingPageDisabled } = require('apollo-server-core');\n\nconst server = new ApolloServer({\n  typeDefs,\n  resolvers,\n  introspection: process.env.NODE_ENV !== 'production',\n  plugins: [\n    process.env.NODE_ENV === 'production' ? ApolloServerPluginLandingPageDisabled() : null,\n  ],\n});\n\nserver.listen().then(({ url }) =\u003e {\n  console.log(`Server ready at ${url}`);\n});\n```\n"
+    },
+    {
+      "VulnerabilityType": "GraphQL Batching Enabled",
+      "URL": "http://192.168.1.7:4000/graphql",
+      "Parameter": "query",
+      "Payload": "GraphQL batching is enabled with 100% success rate (tested 30 requests)",
+      "Location": "query",
+      "Details": "Multiple queries were successfully executed in a single batch request.",
+      "severity": "Medium",
+      "evidence": "GraphQL batching is enabled with 100% success rate (tested 30 requests)",
+      "remediation": "Consider disabling GraphQL batching to prevent potential DoS attacks. If batching is required, implement rate limiting and query complexity analysis.",
+      "scanner_name": "GraphQL Scanner",
+      "ai_analysis": "**Root Cause:** GraphQL batching is enabled on the server without proper consideration for potential abuse. This allows clients to send multiple queries in a single request, which can overwhelm the server, bypass rate limiting, or potentially expose vulnerabilities if the queries are not properly validated and authorized.\n\n**Recommendation:** Evaluate the necessity of GraphQL batching. If required, implement robust security measures, including:\n\n*   **Complexity Analysis:** Analyze and limit the complexity of individual queries within a batch, as well as the overall complexity of the batch itself.\n*   **Rate Limiting:** Implement rate limiting on a per-query basis within the batch, in addition to overall batch rate limiting, to prevent abuse.\n*   **Authorization:** Ensure each query within the batch is properly authorized, as if it were a separate request. Consider unique authorization contexts if needed.\n*   **Depth Limiting:** Limit the maximum depth of nested fields within each query to prevent resource exhaustion.\n*   **Consider disabling batching:** If the performance gain is minimal and the security risk is significant, disable GraphQL batching altogether.\n\n**Code Example (if relevant):**\n\n```javascript\n// Example using Apollo Server to limit query complexity and depth\n\nconst { ApolloServer } = require('apollo-server');\nconst depthLimit = require('graphql-depth-limit');\nconst { createComplexityLimitRule } = require('graphql-validation-complexity');\n\nconst schema = // Your GraphQL schema;\n\nconst server = new ApolloServer({\n  schema,\n  validationRules: [\n    depthLimit(5), // Limit query depth to 5 levels\n    createComplexityLimitRule(1000, { // Limit query complexity to 1000\n      onCost: (cost) =\u003e {\n        console.log('Query Cost:', cost);\n      },\n      formatErrorMessage: (cost) =\u003e\n        `Query is too complex: ${cost}. Maximum allowed complexity: 1000`,\n    }),\n  ],\n  context: ({ req }) =\u003e {\n    // ... your context logic (e.g., authentication)\n    return {};\n  },\n});\n\nserver.listen().then(({ url }) =\u003e {\n  console.log(`Server ready at ${url}`);\n});\n```\n"
+    },
+    {
+      "VulnerabilityType": "Missing Rate Limiting",
+      "URL": "http://192.168.1.7:4000/graphql",
+      "Parameter": "query",
+      "Payload": "No rate limiting detected at GET http://192.168.1.7:4000/api/vulnerable/rate-limit - All 30 requests succeeded (avg 4ms)",
+      "Location": "query",
+      "Details": "Missing rate limiting allows for potential DoS attacks",
+      "severity": "Medium",
+      "evidence": "No rate limiting detected at GET http://192.168.1.7:4000/api/vulnerable/rate-limit - All 30 requests succeeded (avg 4ms)",
+      "remediation": "Implement rate limiting to protect against brute force and denial of service attacks. Consider using a sliding window algorithm or token bucket algorithm.",
+      "scanner_name": "GraphQL Scanner",
+      "ai_analysis": "**Root Cause:** The GraphQL endpoint at `/graphql` lacks rate limiting, allowing an attacker to submit a large number of requests in a short period, potentially overloading the server and leading to a denial-of-service (DoS).\n\n**Recommendation:** Implement rate limiting on the GraphQL endpoint to restrict the number of requests a user or IP address can make within a given timeframe. This will mitigate the risk of DoS attacks by preventing malicious actors from overwhelming the server with excessive requests.\n\n**Code Example (if relevant):**\n```javascript\n// Example using express-rate-limit middleware in Node.js\n\nconst rateLimit = require(\"express-rate-limit\");\nconst express = require(\"express\");\n\nconst app = express();\n\nconst limiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // Limit each IP to 100 requests per windowMs\n  message: \"Too many requests from this IP, please try again after 15 minutes\"\n});\n\n//  apply to all requests\napp.use('/graphql', limiter);\n\n// Your GraphQL endpoint setup here (e.g., using express-graphql)\n\napp.listen(4000, () =\u003e {\n  console.log(\"Server is running on port 4000\");\n});\n```\n"
+    }
+  ]
+}

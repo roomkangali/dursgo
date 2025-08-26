@@ -108,8 +108,12 @@ This flowchart illustrates the detailed workflow of the Dursgo scanner when init
 |   |      (Normalizes paths like /user/1 and /user/2 to /user/{ID}
 |   |       to report unique vulnerabilities only once)
 |   |
-|   '--- [ CISA KEV Enrichment ] (if enrich: true)
-|         (Checks findings against the Known Exploited Vulnerabilities catalog)
+|   |--- [ CISA KEV Enrichment ] (if enrich: true)
+|   |      (Checks findings against the Known Exploited Vulnerabilities catalog)
+|   |
+|   '--- [ AI-Powered Analysis ] (if ai.enabled: true)
+|         (Sends each finding to a configured LLM (Gemini, Groq, etc.)
+|          for a detailed summary, root cause analysis, and code remediation advice)
 |
 |  [>] Core Process: Report Generation
 |   |   (reporter.WriteJSONReport)
