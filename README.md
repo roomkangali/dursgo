@@ -463,7 +463,7 @@ The following are potential areas for future development to make DursGo a more c
 #### b. API Scanning Enhancements
 - **OpenAPI/Swagger Support:** Implement the ability to parse OpenAPI (v2/v3) and Swagger specifications. This would allow DursGo to automatically discover all API endpoints, parameters, and expected data types, enabling much more comprehensive and targeted API security testing beyond what the crawler can find.
 
-#### b. Enhancements to Existing Scanner Modules
+#### c. Enhancements to Existing Scanner Modules
 
 - **Continuous Improvement:** All existing scanner modules will be continuously updated with the latest detection logic and payloads to keep pace with evolving security threats and research.
 - **IDOR Scanner:**
@@ -476,7 +476,7 @@ The following are potential areas for future development to make DursGo a more c
   - Improve DOM XSS detection with deeper analysis that does not always require a headless browser.
   - Add detection for XSS in more complex contexts, such as inside JavaScript attributes (`onmouseover`, etc.).
 
-#### c. New Scanner Modules
+#### d. New Scanner Modules
 
 - **JWT Attacks:** A module to test for common JSON Web Token vulnerabilities, such as weak secrets, algorithm confusion (`none` algorithm), and signature stripping.
 - **OAuth Authentication:** A scanner to detect misconfigurations in OAuth 2.0 flows, such as improper handling of redirect URIs.
@@ -488,17 +488,17 @@ The following are potential areas for future development to make DursGo a more c
 - **Prototype Pollution:** A dedicated scanner for Node.js applications to detect prototype pollution vulnerabilities.
 - **Secret Scanning:** Add a module that can search for hardcoded secrets (API keys, passwords) within JavaScript files or JSON responses.
 
-#### d. Reporting & Output Improvements
+#### e. Reporting & Output Improvements
 
 - **New Report Formats:** Add options to export results in an interactive HTML format or CSV for easier data analysis.
 - **Vulnerability Evidence:** Include more detailed response snippets in reports to facilitate manual validation.
 
-#### e. Configuration and Flexibility Enhancements
+#### f. Configuration and Flexibility Enhancements
 
 - **Scope & Exclusions:** Add options in `config.yaml` to exclude specific paths or parameters from scanning (e.g., logout buttons, password change forms).
 - **Throttling & Rate Limiting:** More granular control over request delays to avoid being blocked by WAF/IPS.
 
-#### f. Integration and Automation
+#### g. Integration and Automation
 
 - **Baseline Scans:** Add a feature to run an initial scan and then only report new vulnerabilities on subsequent scans, which is highly useful for CI/CD integration.
 - **API Documentation:** If DursGo is developed as a service, provide API documentation for integration with other tools.
