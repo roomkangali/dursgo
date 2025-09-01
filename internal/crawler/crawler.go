@@ -3,9 +3,9 @@ package crawler
 import (
 	"crypto/sha1"
 	"crypto/sha256"
-	"Dursgo/internal/httpclient"
-	"Dursgo/internal/logger"
-	"Dursgo/internal/renderer"
+	"github.com/roomkangali/dursgo/internal/httpclient"
+	"github.com/roomkangali/dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/renderer"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"

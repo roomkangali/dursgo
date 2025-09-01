@@ -1,10 +1,10 @@
 package blindssrf
 
 import (
-	"Dursgo/internal/crawler"
-	"Dursgo/internal/httpclient"
-	"Dursgo/internal/logger"
-	"Dursgo/internal/scanner"
+	"github.com/roomkangali/dursgo/internal/crawler"
+	"github.com/roomkangali/dursgo/internal/httpclient"
+	"github.com/roomkangali/dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/scanner"
 	"fmt"
 	"io"
 	"math/rand"

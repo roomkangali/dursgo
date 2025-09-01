@@ -1,9 +1,9 @@
 package scanner
 
 import (
-	"Dursgo/internal/crawler"
-	"Dursgo/internal/httpclient"
-	"Dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/crawler"
+	"github.com/roomkangali/dursgo/internal/httpclient"
+	"github.com/roomkangali/dursgo/internal/logger"
 	"fmt"
 	"io"
 	"net/http"

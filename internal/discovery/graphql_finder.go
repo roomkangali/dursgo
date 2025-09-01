@@ -1,9 +1,9 @@
 package discovery
 
 import (
-	"Dursgo/internal/httpclient"
-	"Dursgo/internal/logger"
-	"Dursgo/internal/payloads"
+	"github.com/roomkangali/dursgo/internal/httpclient"
+	"github.com/roomkangali/dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/payloads"
 	"bytes"
 	"encoding/json"
 	"io"

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"Dursgo/internal/enrichment/cisa"
+	"github.com/roomkangali/dursgo/internal/enrichment/cisa"
 )
 
 // Enricher provides vulnerability enrichment capabilities

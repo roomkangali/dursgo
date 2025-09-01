@@ -1,8 +1,8 @@
 package reporter
 
 import (
-	"Dursgo/internal/crawler" // Required to access the ParameterizedRequest struct
-	"Dursgo/internal/scanner"
+	"github.com/roomkangali/dursgo/internal/crawler" // Required to access the ParameterizedRequest struct
+	"github.com/roomkangali/dursgo/internal/scanner"
 	"time"
 )
 

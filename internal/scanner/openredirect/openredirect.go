@@ -1,11 +1,11 @@
 package openredirect
 
 import (
-	"Dursgo/internal/crawler"
-	"Dursgo/internal/httpclient"
-	"Dursgo/internal/logger"
-	"Dursgo/internal/payloads"
-	"Dursgo/internal/scanner"
+	"github.com/roomkangali/dursgo/internal/crawler"
+	"github.com/roomkangali/dursgo/internal/httpclient"
+	"github.com/roomkangali/dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/payloads"
+	"github.com/roomkangali/dursgo/internal/scanner"
 	"fmt"
 	"io"
 	"net/http"
