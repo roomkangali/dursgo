@@ -41,5 +41,9 @@ func init() {
 			Payload:     `javascript:document.body.innerHTML+='<marquee id=DURSGO_DOM_XSS_MARKER></marquee>'`,
 			Description: "DOM injection via the javascript: protocol handler.",
 		},
+		{
+			Payload:     `javascript:eval("document.body.innerHTML+='<div id=DURSGO_DOM_XSS_MARKER></div>'")`,
+			Description: "DOM injection via javascript: protocol using eval() to create a marker element, effective for location.href sinks.",
+		},
 	}
 }

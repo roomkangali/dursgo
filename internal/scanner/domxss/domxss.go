@@ -27,6 +27,46 @@ func NewDOMXSSScanner() *DOMXSSScanner { return &DOMXSSScanner{} }
 // Name returns the scanner's name.
 func (s *DOMXSSScanner) Name() string { return "Intelligent DOM-Based XSS Scanner" }
 
+// confirmExecutionViaJSProtocol handles payloads using the 'javascript:' protocol.
+// It navigates to the clean URL, then directly evaluates the JS code from the payload,
+// which is more reliable than assigning to window.location.href and avoids syntax errors.
+func confirmExecutionViaJSProtocol(ctx context.Context, targetURL, payload, marker string, log *logger.Logger) bool {
+	markerSelector := "#" + marker
+	// Strip the "javascript:" prefix to get the raw code to execute.
+	jsCode := strings.TrimPrefix(payload, "javascript:")
+
+	runCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	var success bool
+	err := chromedp.Run(runCtx,
+		chromedp.Navigate(targetURL),
+		chromedp.Sleep(1*time.Second),  // Allow page to settle
+		chromedp.Evaluate(jsCode, nil), // Directly execute the JS code
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			waitCtx, waitCancel := context.WithTimeout(ctx, 5*time.Second)
+			defer waitCancel()
+			if err := chromedp.Run(waitCtx, chromedp.WaitVisible(markerSelector, chromedp.ByID)); err == nil {
+				success = true
+			}
+			return nil
+		}),
+	)
+
+	if err != nil {
+		log.Debug("DOMXSS Exploit (JS Proto): Error during execution: %v", err)
+		return false
+	}
+
+	if success {
+		log.Success("DOMXSS Exploit (JS Proto): Element with marker '%s' found in DOM!", marker)
+		return true
+	}
+
+	log.Debug("DOMXSS Exploit (JS Proto): Element with marker '%s' not found.", marker)
+	return false
+}
+
 // confirmExecution checks if a DOM XSS payload successfully executed by looking for a marker element.
 // This function navigates to a URL with the payload in the fragment and waits for a specific
 // HTML element (marker) to appear in the DOM, indicating successful execution.
@@ -104,7 +144,16 @@ func (s *DOMXSSScanner) testFragmentDOMXSS(allocatorContext context.Context, req
 		marker := fmt.Sprintf("dursgo-proof-%d", rand.Intn(1e9))
 		payloadWithMarker := strings.Replace(testCase.Payload, "DURSGO_DOM_XSS_MARKER", marker, -1)
 
-		if confirmExecution(exploitCtx, req.URL, payloadWithMarker, marker, log) {
+		var executed bool
+		if strings.HasPrefix(testCase.Payload, "javascript:") {
+			log.Debug("DOMXSS (Fragment): Testing javascript: protocol payload via Evaluate.")
+			executed = confirmExecutionViaJSProtocol(exploitCtx, req.URL, payloadWithMarker, marker, log)
+		} else {
+			log.Debug("DOMXSS (Fragment): Testing HTML injection payload via Navigate.")
+			executed = confirmExecution(exploitCtx, req.URL, payloadWithMarker, marker, log)
+		}
+
+		if executed {
 			return []scanner.VulnerabilityResult{{
 				VulnerabilityType: "DOM-Based Cross-Site Scripting (via URL Fragment)",
 				URL:               req.URL + "#" + payloadWithMarker,
@@ -138,7 +187,7 @@ func (s *DOMXSSScanner) testPostMessageDOMXSS(allocatorContext context.Context, 
 			originalAddEventListener.apply(this, arguments);
 		};
 	`
-	
+
 	// Phase 1: Listener Detection
 	detectCtx, cancelDetect := chromedp.NewContext(allocatorContext)
 	defer cancelDetect()
@@ -168,7 +217,7 @@ func (s *DOMXSSScanner) testPostMessageDOMXSS(allocatorContext context.Context, 
 
 		marker := fmt.Sprintf("dursgo-proof-%d", rand.Intn(1e9))
 		payloadWithMarker := strings.Replace(testCase.Payload, "DURSGO_DOM_XSS_MARKER", marker, -1)
-		
+
 		// Replace single quotes to avoid breaking JavaScript string
 		jsPayload := strings.ReplaceAll(payloadWithMarker, "'", `\'`)
 
@@ -209,7 +258,6 @@ func (s *DOMXSSScanner) testPostMessageDOMXSS(allocatorContext context.Context, 
 
 	return nil
 }
-
 
 // Scan now acts as an orchestrator that calls both scanning methods.
 // It checks if the headless browser is enabled and if the page is HTML before proceeding.
