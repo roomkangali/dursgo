@@ -1,7 +1,7 @@
 package httpclient
 
 import (
-	"Dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/logger"
 	"bytes"
 	"crypto/tls"
 	"io"

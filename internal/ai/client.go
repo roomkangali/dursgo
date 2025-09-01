@@ -1,8 +1,8 @@
 package ai
 
 import (
-	"Dursgo/internal/config"
-	"Dursgo/internal/scanner"
+	"github.com/roomkangali/dursgo/internal/config"
+	"github.com/roomkangali/dursgo/internal/scanner"
 	"context"
 	"fmt"
 
