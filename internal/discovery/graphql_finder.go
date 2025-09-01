@@ -1,14 +1,15 @@
 package discovery
 
 import (
-	"github.com/roomkangali/dursgo/internal/httpclient"
-	"github.com/roomkangali/dursgo/internal/logger"
-	"github.com/roomkangali/dursgo/internal/payloads"
 	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/roomkangali/dursgo/internal/httpclient"
+	"github.com/roomkangali/dursgo/internal/logger"
+	"github.com/roomkangali/dursgo/internal/payloads"
 )
 
 // GraphQLFinder is responsible for discovering and confirming GraphQL endpoints.

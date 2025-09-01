@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"regexp"
+
 	"github.com/roomkangali/dursgo/internal/ai" // Import the new AI package
 	"github.com/roomkangali/dursgo/internal/config"
 	"github.com/roomkangali/dursgo/internal/crawler"
@@ -42,7 +44,6 @@ import (
 	"github.com/roomkangali/dursgo/internal/scanner/ssrf"
 	"github.com/roomkangali/dursgo/internal/scanner/ssti"
 	"github.com/roomkangali/dursgo/internal/scanner/xss"
-	"regexp"
 
 	"github.com/projectdiscovery/interactsh/pkg/client"
 	"github.com/projectdiscovery/interactsh/pkg/server"
