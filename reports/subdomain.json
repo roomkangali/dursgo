@@ -1,0 +1,75 @@
+{
+  "scan_summary": {
+    "target_url": "https://www.hackerone.com",
+    "scan_start_time": "2025-09-02T21:36:57+07:00",
+    "scan_end_time": "2025-09-02T21:37:17+07:00",
+    "total_duration": "20s",
+    "scanners_run": [
+      "subdomain"
+    ],
+    "technologies_detected": {
+      "WebServer": "cloudflare"
+    },
+    "total_urls_discovered": 0,
+    "total_parameterized_requests": 0,
+    "total_vulnerabilities_found": 8
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://mta-sts.managed.hackerone.com",
+      "Details": "Subdomain 'mta-sts.managed.hackerone.com' is active and responded with status code 404.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://mta-sts.hackerone.com",
+      "Details": "Subdomain 'mta-sts.hackerone.com' is active and responded with status code 404.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://api.hackerone.com",
+      "Details": "Subdomain 'api.hackerone.com' is active and responded with status code 200.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://www.hackerone.com",
+      "Details": "Subdomain 'www.hackerone.com' is active and responded with status code 200.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://gslink.hackerone.com",
+      "Details": "Subdomain 'gslink.hackerone.com' is active and responded with status code 404.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://mta-sts.forwarding.hackerone.com",
+      "Details": "Subdomain 'mta-sts.forwarding.hackerone.com' is active and responded with status code 404.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://docs.hackerone.com",
+      "Details": "Subdomain 'docs.hackerone.com' is active and responded with status code 200.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    },
+    {
+      "VulnerabilityType": "Active Subdomain Discovered",
+      "URL": "https://support.hackerone.com",
+      "Details": "Subdomain 'support.hackerone.com' is active and responded with status code 200.",
+      "severity": "Info",
+      "scanner_name": "subdomain"
+    }
+  ]
+}
