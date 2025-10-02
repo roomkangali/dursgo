@@ -41,6 +41,7 @@ import (
 	"Dursgo/internal/scanner/sqli"
 	"Dursgo/internal/scanner/ssrf"
 	"Dursgo/internal/scanner/ssti"
+	"Dursgo/internal/scanner/subdomain"
 	"Dursgo/internal/scanner/xss"
 	"regexp"
 
@@ -140,7 +141,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  -s string\n")
 		fmt.Fprintf(os.Stderr, "    \tScanners to run, comma-separated (e.g., xss,sqli,idor).\n")
 		fmt.Fprintf(os.Stderr, "    \tUse 'all' to run all scanners, 'none' for crawling only.\n")
-		fmt.Fprintf(os.Stderr, "    \tAvailable: none,xss,sqli,lfi,openredirect,ssrf,exposed,idor,csrf,cmdinjection,ssti,securityheaders,cors,fileupload,bola,massassignment,graphql,blindssrf,domxss\n")
+		fmt.Fprintf(os.Stderr, "    \tAvailable: none,xss,sqli,lfi,openredirect,ssrf,exposed,idor,csrf,cmdinjection,ssti,securityheaders,cors,fileupload,bola,massassignment,graphql,blindssrf,domxss,subdomain\n")
 
 		fmt.Fprintf(os.Stderr, "\nCRAWLING & PERFORMANCE:\n")
 		fmt.Fprintf(os.Stderr, "  -c int\n    \tNumber of concurrent workers (default: %d)\n", cfg.Concurrency)
@@ -369,272 +370,290 @@ func main() {
 		GraphQLEndpoint:    graphQLEndpoint,     // Discovered GraphQL endpoint.
 	}
 
-	// Initialize the crawler with the authenticated HTTP client.
-	dursGoCrawler, err := crawler.NewCrawler(httpClient, log, targetBaseURL, concurrency, maxDepth, rend)
-	if err != nil {
-		log.Error("Failed to initialize crawler: %v", err)
-		os.Exit(1)
-	}
-
-	// Prepare entry points for crawling.
-	entryPoints := []string{targetURLStr}
-	for _, seed := range cfg.SeedURLs {
-		if seed != "" {
-			entryPoints = append(entryPoints, seed)
-		}
-	}
-	// Remove duplicate entry points for efficiency.
-	uniqueEntryPoints := make(map[string]struct{})
-	finalEntryPoints := []string{}
-	for _, entry := range entryPoints {
-		if _, exists := uniqueEntryPoints[entry]; !exists {
-			uniqueEntryPoints[entry] = struct{}{}
-			finalEntryPoints = append(finalEntryPoints, entry)
-		}
-	}
-
-	// Start the crawling process.
-	log.Info("Starting crawling from %d unique entry points...", len(finalEntryPoints))
-	resultsChan := dursGoCrawler.Crawl(finalEntryPoints, 0)
-	// Consume results from the crawling channel to ensure completion.
-	for range resultsChan {
-	}
-
-	// Retrieve discovered parameterized requests and all discovered URLs from the crawler.
-	parameterizedRequestsForScan := dursGoCrawler.GetParameterizedRequestsForScanning()
-	allDiscoveredURLs := dursGoCrawler.GetDiscoveredURLs()
-
-	// Prepare initial scan requests, merging parameters for the same path to avoid data loss.
-	mergedRequests := make(map[string]*crawler.ParameterizedRequest)
-
-	// Process requests discovered by the crawler that have parameters.
-	for i := range parameterizedRequestsForScan {
-		req := parameterizedRequestsForScan[i]
-		key := req.Method + " " + req.Path
-
-		if existing, ok := mergedRequests[key]; ok {
-			// If a request for this path already exists, merge the parameters.
-			paramSet := make(map[string]bool)
-			for _, p := range existing.ParamNames {
-				paramSet[p] = true
-			}
-			for _, newParam := range req.ParamNames {
-				if !paramSet[newParam] {
-					existing.ParamNames = append(existing.ParamNames, newParam)
-					paramSet[newParam] = true
-				}
-			}
-		} else {
-			// Otherwise, add the new request to the map.
-			reqCopy := req
-			mergedRequests[key] = &reqCopy
-		}
-	}
-
-	// Also process all discovered URLs to ensure they are included as GET requests.
-	for _, u := range allDiscoveredURLs {
-		parsedU, err := url.Parse(u)
-		if err != nil {
-			continue
-		}
-		key := "GET " + parsedU.Path
-		if _, exists := mergedRequests[key]; !exists {
-			mergedRequests[key] = &crawler.ParameterizedRequest{
-				URL:            u,
-				Method:         "GET",
-				Path:           parsedU.Path,
-				ParamLocations: []string{"query"},
-				ParamNames:     []string{},
-			}
-		}
-	}
-
-	// Convert the map of merged requests back into a slice for scanning.
-	initialScanRequests := make([]crawler.ParameterizedRequest, 0, len(mergedRequests))
-	for _, req := range mergedRequests {
-		initialScanRequests = append(initialScanRequests, *req)
-	}
-
-	// Discover additional parameters if scanning is enabled.
-	var enrichedScanRequests []crawler.ParameterizedRequest
-	if willScan {
-		enrichedScanRequests = dursGoCrawler.DiscoverParameters(initialScanRequests)
-	} else {
-		enrichedScanRequests = initialScanRequests
-	}
-
-	// Log crawler results.
-	log.Info("\n--- Crawler Results ---")
-	log.Info("Total unique URLs discovered: %d", len(allDiscoveredURLs))
-	if len(allDiscoveredURLs) > 0 {
-		log.Info("Full list of discovered URLs:")
-		sortedURLs := make([]string, len(allDiscoveredURLs))
-		copy(sortedURLs, allDiscoveredURLs)
-		sort.Strings(sortedURLs)
-		for _, u := range sortedURLs {
-			log.Info("- %s", u)
-		}
-	}
-	log.Info("Found %d unique parameterized requests for vulnerability scanning.", len(enrichedScanRequests))
-	if len(enrichedScanRequests) > 0 {
-		var getRequests, postRequests []crawler.ParameterizedRequest
-		for _, req := range enrichedScanRequests {
-			if req.Method == "GET" {
-				getRequests = append(getRequests, req)
-			} else {
-				postRequests = append(postRequests, req)
-			}
-		}
-		// Sort requests for consistent logging.
-		sort.Slice(getRequests, func(i, j int) bool { return getRequests[i].URL < getRequests[j].URL })
-		sort.Slice(postRequests, func(i, j int) bool { return postRequests[i].URL < postRequests[j].URL })
-		if len(getRequests) > 0 {
-			log.Info("\n--- Parameterized GET Requests Found (%d) ---", len(getRequests))
-			for _, req := range getRequests {
-				if len(req.ParamNames) > 0 {
-					log.Info("- %s (Params: %s)", req.URL, strings.Join(req.ParamNames, ", "))
-				}
-			}
-		}
-		if len(postRequests) > 0 {
-			log.Info("\n--- Parameterized POST Requests Found (%d) ---", len(postRequests))
-			for _, req := range postRequests {
-				if len(req.ParamNames) > 0 {
-					log.Info("- %s (Params: %s)", req.URL, strings.Join(req.ParamNames, ", "))
-				}
-			}
-		}
-	}
-
 	// Declare a slice to store all discovered vulnerabilities.
 	var allVulnerabilities []scanner.VulnerabilityResult
+	var allDiscoveredURLs []string
+	var enrichedScanRequests []crawler.ParameterizedRequest
 
-	// Proceed with scanning if 'scanners_to_run' is not set to "none".
-	if willScan {
-		// Determine which scanners to run based on command-line flag or config.
-		scannersToRun := make(map[string]bool)
-		if scannersToRunStr == "all" {
-			// Register all available scanners.
-			for _, s := range []string{"xss", "sqli", "lfi", "openredirect", "ssrf", "exposed", "idor", "csrf", "cmdinjection", "ssti", "securityheaders", "cors", "fileupload", "bola", "massassignment", "graphql", "domxss"} {
-				scannersToRun[s] = true
+	// --- Standalone Subdomain Scan or Full Scan ---
+	if scannersToRunStr == "subdomain" {
+		log.Info("Running in standalone subdomain scan mode (skipping crawl)...")
+		subdomainScanner := subdomain.NewSubdomainScanner()
+		dummyReq := crawler.ParameterizedRequest{URL: targetURLStr} // Create a dummy request
+
+		// Run the scan and collect vulnerabilities
+		vulns, err := subdomainScanner.Scan(dummyReq, httpClient, log, scannerOptions)
+		if err != nil {
+			log.Error("Subdomain scan failed: %v", err)
+		}
+		allVulnerabilities = append(allVulnerabilities, vulns...)
+	} else { // This handles both full scan (willScan == true) and crawl-only (willScan == false)
+		// Initialize the crawler with the authenticated HTTP client.
+		dursGoCrawler, err := crawler.NewCrawler(httpClient, log, targetBaseURL, concurrency, maxDepth, rend)
+		if err != nil {
+			log.Error("Failed to initialize crawler: %v", err)
+			os.Exit(1)
+		}
+
+		// Prepare entry points for crawling.
+		entryPoints := []string{targetURLStr}
+		for _, seed := range cfg.SeedURLs {
+			if seed != "" {
+				entryPoints = append(entryPoints, seed)
 			}
-			// Conditionally enable blind SSRF if OAST is active.
-			if oast {
-				scannersToRun["blindssrf"] = true
-			}
-			// Conditionally enable DOM XSS if JavaScript rendering is active.
-			if renderJS {
-				scannersToRun["domxss"] = true
-			}
-		} else {
-			// Register specific scanners listed in the flag.
-			for _, s := range strings.Split(strings.ToLower(scannersToRunStr), ",") {
-				scannersToRun[strings.TrimSpace(s)] = true
+		}
+		// Remove duplicate entry points for efficiency.
+		uniqueEntryPoints := make(map[string]struct{})
+		finalEntryPoints := []string{}
+		for _, entry := range entryPoints {
+			if _, exists := uniqueEntryPoints[entry]; !exists {
+				uniqueEntryPoints[entry] = struct{}{}
+				finalEntryPoints = append(finalEntryPoints, entry)
 			}
 		}
 
-		// If any scanners are selected, initialize and run them.
-		if len(scannersToRun) > 0 {
-			log.Info("\n--- Initiating Vulnerability Scans ---")
-			scannerManager := scanner.NewManager(httpClient, log, scannerOptions)
-
-			// Register individual scanners based on the 'scannersToRun' map.
-			if scannersToRun["all"] || scannersToRun["xss"] || scannersToRun["xss-reflected"] {
-				scannerManager.RegisterScanner(xss.NewReflectedXSSScanner())
-			}
-			if scannersToRun["all"] || scannersToRun["xss"] || scannersToRun["xss-stored"] {
-				scannerManager.RegisterScanner(xss.NewStoredXSSScanner())
-			}
-			if scannersToRun["sqli"] {
-				scannerManager.RegisterScanner(sqli.NewSQLiScanner())
-			}
-			if scannersToRun["lfi"] {
-				scannerManager.RegisterScanner(lfi.NewLFIScanner())
-			}
-			if scannersToRun["openredirect"] {
-				scannerManager.RegisterScanner(openredirect.NewOpenRedirectScanner())
-			}
-			if scannersToRun["ssrf"] {
-				scannerManager.RegisterScanner(ssrf.NewSSRFScanner())
-			}
-			if scannersToRun["idor"] {
-				scannerManager.RegisterScanner(idor.NewIDORScanner())
-			}
-			if scannersToRun["csrf"] {
-				scannerManager.RegisterScanner(csrf.NewCSRFScanner())
-			}
-			if scannersToRun["cmdinjection"] {
-				scannerManager.RegisterScanner(cmdinjection.NewCommandInjectionScanner())
-			}
-			if scannersToRun["ssti"] {
-				scannerManager.RegisterScanner(ssti.NewSSTIScanner())
-			}
-			if scannersToRun["fileupload"] {
-				scannerManager.RegisterScanner(fileupload.NewFileUploadScanner())
-			}
-			if scannersToRun["securityheaders"] {
-				scannerManager.RegisterScanner(securityheaders.NewSecurityHeadersScanner())
-			}
-			if scannersToRun["cors"] {
-				scannerManager.RegisterScanner(cors.NewCORSScanner())
-			}
-			if scannersToRun["exposed"] {
-				scannerManager.RegisterScanner(exposed.NewExposedScanner())
-			}
-			if scannersToRun["bola"] {
-				scannerManager.RegisterScanner(bola.NewBOLAScanner())
-			}
-			if scannersToRun["massassignment"] {
-				scannerManager.RegisterScanner(massassignment.NewMassAssignmentScanner())
-			}
-			if scannersToRun["blindssrf"] && oast {
-				scannerManager.RegisterScanner(blindssrf.NewBlindSSRFScanner())
-			}
-			if scannersToRun["domxss"] && renderJS {
-				scannerManager.RegisterScanner(domxss.NewDOMXSSScanner())
-			}
-			if scannersToRun["graphql"] {
-				scannerManager.RegisterScanner(graphql.NewGraphQLScanner())
-			}
-
-			// Run scans if there are registered scanners and discovered requests.
-			if len(scannerManager.GetRegisteredScanners()) > 0 && len(enrichedScanRequests) > 0 {
-				log.Info("Running scanners on %d unique targets (including proactively discovered params)...", len(enrichedScanRequests))
-				vulns := scannerManager.RunScans(enrichedScanRequests)
-				allVulnerabilities = append(allVulnerabilities, vulns...)
-			}
+		// Start the crawling process.
+		log.Info("Starting crawling from %d unique entry points...", len(finalEntryPoints))
+		resultsChan := dursGoCrawler.Crawl(finalEntryPoints, 0)
+		// Consume results from the crawling channel to ensure completion.
+		for range resultsChan {
 		}
-	} else {
-		log.Info("\nOnly crawling requested. Skipping vulnerability scan.")
-	}
 
-	// Handle OAST (Out-of-Band Application Security Testing) interactions.
-	if oast {
-		log.Info("Waiting for final OAST interactions (10 seconds)...")
-		time.Sleep(10 * time.Second) // Wait for any pending OAST interactions.
-		interactshClient.StopPolling()
-		oastMu.Lock()
-		defer oastMu.Unlock()
-		if len(oastInteractions) > 0 {
-			log.Success("--- OAST Interaction(s) Detected! Correlating results... ---")
-			var confirmedOASTFindings []scanner.VulnerabilityResult
-			// Iterate through potential vulnerabilities and correlate with OAST interactions.
-			scannerOptions.OASTCorrelationMap.Range(func(key, value interface{}) bool {
-				correlationID := key.(string)
-				potentialVuln := value.(scanner.VulnerabilityResult)
-				for _, interaction := range oastInteractions {
-					if strings.Contains(interaction.FullId, correlationID) {
-						potentialVuln.Details += fmt.Sprintf(" Confirmed via %s interaction from %s.", interaction.Protocol, interaction.RemoteAddress)
-						confirmedOASTFindings = append(confirmedOASTFindings, potentialVuln)
-						scannerOptions.OASTCorrelationMap.Delete(key) // Remove correlated vulnerability from map.
-						return false                                  // Stop iterating for this key.
+		// Retrieve discovered parameterized requests and all discovered URLs from the crawler.
+		parameterizedRequestsForScan := dursGoCrawler.GetParameterizedRequestsForScanning()
+		allDiscoveredURLs = dursGoCrawler.GetDiscoveredURLs()
+
+		// Prepare initial scan requests, merging parameters for the same path to avoid data loss.
+		mergedRequests := make(map[string]*crawler.ParameterizedRequest)
+
+		// Process requests discovered by the crawler that have parameters.
+		for i := range parameterizedRequestsForScan {
+			req := parameterizedRequestsForScan[i]
+			key := req.Method + " " + req.Path
+
+			if existing, ok := mergedRequests[key]; ok {
+				// If a request for this path already exists, merge the parameters.
+				paramSet := make(map[string]bool)
+				for _, p := range existing.ParamNames {
+					paramSet[p] = true
+				}
+				for _, newParam := range req.ParamNames {
+					if !paramSet[newParam] {
+						existing.ParamNames = append(existing.ParamNames, newParam)
+						paramSet[newParam] = true
 					}
 				}
-				return true // Continue iterating.
-			})
-			allVulnerabilities = append(allVulnerabilities, confirmedOASTFindings...)
+			} else {
+				// Otherwise, add the new request to the map.
+				reqCopy := req
+				mergedRequests[key] = &reqCopy
+			}
+		}
+
+		// Also process all discovered URLs to ensure they are included as GET requests.
+		for _, u := range allDiscoveredURLs {
+			parsedU, err := url.Parse(u)
+			if err != nil {
+				continue
+			}
+			key := "GET " + parsedU.Path
+			if _, exists := mergedRequests[key]; !exists {
+				mergedRequests[key] = &crawler.ParameterizedRequest{
+					URL:            u,
+					Method:         "GET",
+					Path:           parsedU.Path,
+					ParamLocations: []string{"query"},
+					ParamNames:     []string{},
+				}
+			}
+		}
+
+		// Convert the map of merged requests back into a slice for scanning.
+		initialScanRequests := make([]crawler.ParameterizedRequest, 0, len(mergedRequests))
+		for _, req := range mergedRequests {
+			initialScanRequests = append(initialScanRequests, *req)
+		}
+
+		// Discover additional parameters if scanning is enabled.
+		if willScan {
+			enrichedScanRequests = dursGoCrawler.DiscoverParameters(initialScanRequests)
 		} else {
-			log.Info("No OAST interactions detected.")
+			enrichedScanRequests = initialScanRequests
+		}
+
+		// Log crawler results.
+		log.Info("\n--- Crawler Results ---")
+		log.Info("Total unique URLs discovered: %d", len(allDiscoveredURLs))
+		if len(allDiscoveredURLs) > 0 {
+			log.Info("Full list of discovered URLs:")
+			sortedURLs := make([]string, len(allDiscoveredURLs))
+			copy(sortedURLs, allDiscoveredURLs)
+			sort.Strings(sortedURLs)
+			for _, u := range sortedURLs {
+				log.Info("- %s", u)
+			}
+		}
+		log.Info("Found %d unique parameterized requests for vulnerability scanning.", len(enrichedScanRequests))
+		if len(enrichedScanRequests) > 0 {
+			var getRequests, postRequests []crawler.ParameterizedRequest
+			for _, req := range enrichedScanRequests {
+				if req.Method == "GET" {
+					getRequests = append(getRequests, req)
+				} else {
+					postRequests = append(postRequests, req)
+				}
+			}
+			// Sort requests for consistent logging.
+			sort.Slice(getRequests, func(i, j int) bool { return getRequests[i].URL < getRequests[j].URL })
+			sort.Slice(postRequests, func(i, j int) bool { return postRequests[i].URL < postRequests[j].URL })
+			if len(getRequests) > 0 {
+				log.Info("\n--- Parameterized GET Requests Found (%d) ---", len(getRequests))
+				for _, req := range getRequests {
+					if len(req.ParamNames) > 0 {
+						log.Info("- %s (Params: %s)", req.URL, strings.Join(req.ParamNames, ", "))
+					}
+				}
+			}
+			if len(postRequests) > 0 {
+				log.Info("\n--- Parameterized POST Requests Found (%d) ---", len(postRequests))
+				for _, req := range postRequests {
+					if len(req.ParamNames) > 0 {
+						log.Info("- %s (Params: %s)", req.URL, strings.Join(req.ParamNames, ", "))
+					}
+				}
+			}
+		}
+
+		// Proceed with scanning if 'scanners_to_run' is not set to "none".
+		if willScan {
+			// Determine which scanners to run based on command-line flag or config.
+			scannersToRun := make(map[string]bool)
+			if scannersToRunStr == "all" {
+				// Register all available scanners.
+				for _, s := range []string{"xss", "sqli", "lfi", "openredirect", "ssrf", "exposed", "idor", "csrf", "cmdinjection", "ssti", "securityheaders", "cors", "fileupload", "bola", "massassignment", "graphql", "domxss", "subdomain"} {
+					scannersToRun[s] = true
+				}
+				// Conditionally enable blind SSRF if OAST is active.
+				if oast {
+					scannersToRun["blindssrf"] = true
+				}
+				// Conditionally enable DOM XSS if JavaScript rendering is active.
+				if renderJS {
+					scannersToRun["domxss"] = true
+				}
+			} else {
+				// Register specific scanners listed in the flag.
+				for _, s := range strings.Split(strings.ToLower(scannersToRunStr), ",") {
+					scannersToRun[strings.TrimSpace(s)] = true
+				}
+			}
+
+			// If any scanners are selected, initialize and run them.
+			if len(scannersToRun) > 0 {
+				log.Info("\n--- Initiating Vulnerability Scans ---")
+				scannerManager := scanner.NewManager(httpClient, log, scannerOptions)
+
+				// Register individual scanners based on the 'scannersToRun' map.
+				if scannersToRun["all"] || scannersToRun["xss"] || scannersToRun["xss-reflected"] {
+					scannerManager.RegisterScanner(xss.NewReflectedXSSScanner())
+				}
+				if scannersToRun["all"] || scannersToRun["xss"] || scannersToRun["xss-stored"] {
+					scannerManager.RegisterScanner(xss.NewStoredXSSScanner())
+				}
+				if scannersToRun["sqli"] {
+					scannerManager.RegisterScanner(sqli.NewSQLiScanner())
+				}
+				if scannersToRun["lfi"] {
+					scannerManager.RegisterScanner(lfi.NewLFIScanner())
+				}
+				if scannersToRun["openredirect"] {
+					scannerManager.RegisterScanner(openredirect.NewOpenRedirectScanner())
+				}
+				if scannersToRun["ssrf"] {
+					scannerManager.RegisterScanner(ssrf.NewSSRFScanner())
+				}
+				if scannersToRun["idor"] {
+					scannerManager.RegisterScanner(idor.NewIDORScanner())
+				}
+				if scannersToRun["csrf"] {
+					scannerManager.RegisterScanner(csrf.NewCSRFScanner())
+				}
+				if scannersToRun["cmdinjection"] {
+					scannerManager.RegisterScanner(cmdinjection.NewCommandInjectionScanner())
+				}
+				if scannersToRun["ssti"] {
+					scannerManager.RegisterScanner(ssti.NewSSTIScanner())
+				}
+				if scannersToRun["fileupload"] {
+					scannerManager.RegisterScanner(fileupload.NewFileUploadScanner())
+				}
+				if scannersToRun["securityheaders"] {
+					scannerManager.RegisterScanner(securityheaders.NewSecurityHeadersScanner())
+				}
+				if scannersToRun["cors"] {
+					scannerManager.RegisterScanner(cors.NewCORSScanner())
+				}
+				if scannersToRun["exposed"] {
+					scannerManager.RegisterScanner(exposed.NewExposedScanner())
+				}
+				if scannersToRun["bola"] {
+					scannerManager.RegisterScanner(bola.NewBOLAScanner())
+				}
+				if scannersToRun["massassignment"] {
+					scannerManager.RegisterScanner(massassignment.NewMassAssignmentScanner())
+				}
+				if scannersToRun["blindssrf"] && oast {
+					scannerManager.RegisterScanner(blindssrf.NewBlindSSRFScanner())
+				}
+				if scannersToRun["domxss"] && renderJS {
+					scannerManager.RegisterScanner(domxss.NewDOMXSSScanner())
+				}
+				if scannersToRun["graphql"] {
+					scannerManager.RegisterScanner(graphql.NewGraphQLScanner())
+				}
+				if scannersToRun["subdomain"] {
+					scannerManager.RegisterScanner(subdomain.NewSubdomainScanner())
+				}
+
+				// Run scans if there are registered scanners and discovered requests.
+				if len(scannerManager.GetRegisteredScanners()) > 0 && len(enrichedScanRequests) > 0 {
+					log.Info("Running scanners on %d unique targets (including proactively discovered params)...", len(enrichedScanRequests))
+					vulns := scannerManager.RunScans(enrichedScanRequests)
+					allVulnerabilities = append(allVulnerabilities, vulns...)
+				}
+			}
+
+			// Handle OAST (Out-of-Band Application Security Testing) interactions.
+			if oast {
+				log.Info("Waiting for final OAST interactions (10 seconds)...")
+				time.Sleep(10 * time.Second) // Wait for any pending OAST interactions.
+				interactshClient.StopPolling()
+				oastMu.Lock()
+				defer oastMu.Unlock()
+				if len(oastInteractions) > 0 {
+					log.Success("--- OAST Interaction(s) Detected! Correlating results... ---")
+					var confirmedOASTFindings []scanner.VulnerabilityResult
+					// Iterate through potential vulnerabilities and correlate with OAST interactions.
+					scannerOptions.OASTCorrelationMap.Range(func(key, value interface{}) bool {
+						correlationID := key.(string)
+						potentialVuln := value.(scanner.VulnerabilityResult)
+						for _, interaction := range oastInteractions {
+							if strings.Contains(interaction.FullId, correlationID) {
+								potentialVuln.Details += fmt.Sprintf(" Confirmed via %s interaction from %s.", interaction.Protocol, interaction.RemoteAddress)
+								confirmedOASTFindings = append(confirmedOASTFindings, potentialVuln)
+								scannerOptions.OASTCorrelationMap.Delete(key) // Remove correlated vulnerability from map.
+								return false                                  // Stop iterating for this key.
+							}
+						}
+						return true // Continue iterating.
+					})
+					allVulnerabilities = append(allVulnerabilities, confirmedOASTFindings...)
+				} else {
+					log.Info("No OAST interactions detected.")
+				}
+			}
+		} else {
+			log.Info("\nCrawling completed. No vulnerability scans requested.")
 		}
 	}
 
@@ -647,8 +666,12 @@ func main() {
 		for _, vuln := range allVulnerabilities {
 			parsedVulnURL, err := url.Parse(vuln.URL)
 			var reportKey string
-			if err == nil {
-				// Normalize path for deduplication (e.g., /product/1 and /product/2 become /product/{ID}).
+
+			// Custom deduplication key for subdomains to ensure each is reported.
+			if vuln.VulnerabilityType == "Active Subdomain Discovered" {
+				reportKey = fmt.Sprintf("%s|%s", vuln.VulnerabilityType, vuln.URL)
+			} else if err == nil {
+				// Original logic for other scanners.
 				normalizedPath := normalizePathForDeduplication(parsedVulnURL.Path)
 				reportKey = fmt.Sprintf("%s|%s|%s", vuln.VulnerabilityType, normalizedPath, vuln.Parameter)
 			} else {
@@ -659,7 +682,11 @@ func main() {
 				reportedVulnerabilities[reportKey] = vuln
 				finalReportVulns = append(finalReportVulns, vuln)
 				log.Success("--------------------------------------------------")
-				log.Success("Vulnerability Found: %s", vuln.VulnerabilityType)
+				if vuln.VulnerabilityType == "Active Subdomain Discovered" {
+					log.Success("Subdomain Found: %s", vuln.VulnerabilityType)
+				} else {
+					log.Success("Vulnerability Found: %s", vuln.VulnerabilityType)
+				}
 				log.Success("  URL: %s", vuln.URL)
 				if vuln.Parameter != "" {
 					log.Success("  Parameter: %s", vuln.Parameter)
@@ -716,7 +743,7 @@ func main() {
 			if willScan {
 				scannersToRun := make(map[string]bool)
 				if scannersToRunStr == "all" {
-					for _, s := range []string{"xss", "sqli", "lfi", "openredirect", "ssrf", "exposed", "idor", "csrf", "cmdinjection", "ssti", "securityheaders", "cors", "fileupload", "bola", "massassignment", "graphql", "domxss"} {
+					for _, s := range []string{"xss", "sqli", "lfi", "openredirect", "ssrf", "exposed", "idor", "csrf", "cmdinjection", "ssti", "securityheaders", "cors", "fileupload", "bola", "massassignment", "graphql", "domxss", "subdomain"} {
 						scannersToRun[s] = true
 					}
 				} else {
