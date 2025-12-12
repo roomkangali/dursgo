@@ -240,6 +240,7 @@ To enrich findings with analysis from an LLM, use the `--enable-ai` flag. This r
 | `-output-json` | Path to save the report file in JSON format.        | `-output-json result.json` |
 | `-r`           | Maximum number of retries for failed requests.      | `-r 3`                     |
 | `-render-js`   | Enable JavaScript rendering for crawling SPAs.      | `-render-js`               |
+| `-insecure`    | Skip TLS certificate verification.                  | `-insecure`                |
 | `-update-kev`  | Force an update of the CISA KEV catalog and exit.   | `-update-kev`              |
 | `-v`           | Enable verbose output (DEBUG level).                | `-v`                       |
 | `-vv`          | Enable trace-level output (highly verbose).         | `-vv`                      |
