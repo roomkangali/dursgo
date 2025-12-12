@@ -112,7 +112,7 @@ func main() {
 	// Define command-line flags.
 	var targetURLStr, scannersToRunStr, jsonOutputFile string
 	var concurrency, maxRetries, delay, maxDepth int
-	var verbose, trace, oast, enableEnrichment, updateKEV, renderJS, enableAI bool
+	var verbose, trace, oast, enableEnrichment, updateKEV, renderJS, enableAI, insecureSkipVerify bool
 
 	flag.StringVar(&targetURLStr, "u", cfg.Target, "Target URL for scanning")
 	flag.StringVar(&scannersToRunStr, "s", cfg.Scanners, "Comma-separated list of scanners to run (e.g., xss,sqli)")
@@ -128,6 +128,7 @@ func main() {
 	flag.BoolVar(&updateKEV, "update-kev", false, "Force update CISA KEV catalog and exit")
 	flag.BoolVar(&verbose, "v", cfg.Output.Verbose, "Enable verbose output (DEBUG level)")
 	flag.BoolVar(&trace, "vv", false, "Enable trace-level output (highly verbose)")
+	flag.BoolVar(&insecureSkipVerify, "insecure", false, "Skip TLS certificate verification")
 
 	// Custom Usage function
 	flag.Usage = func() {
@@ -162,6 +163,7 @@ func main() {
 
 		fmt.Fprintf(os.Stderr, "\nUTILITIES:\n")
 		fmt.Fprintf(os.Stderr, "  -update-kev\n    \tForce update CISA KEV catalog and exit\n")
+		fmt.Fprintf(os.Stderr, "  -insecure\n    \tSkip TLS certificate verification\n")
 
 		fmt.Fprintf(os.Stderr, "\nCONFIGURATION:\n")
 		fmt.Fprintf(os.Stderr, "  DursGo automatically loads 'config.yaml' from the current directory.\n")
@@ -276,12 +278,13 @@ func main() {
 
 	// Configure HTTP client options.
 	clientOpts := httpclient.ClientOptions{
-		Timeout:         15 * time.Second,
-		UserAgent:       cfg.UserAgent,
-		FollowRedirects: true,
-		MaxRetries:      maxRetries,
-		RequestDelay:    time.Duration(delay) * time.Millisecond,
-		TargetBaseURL:   targetBaseURL,
+		Timeout:            15 * time.Second,
+		UserAgent:          cfg.UserAgent,
+		FollowRedirects:    true,
+		MaxRetries:         maxRetries,
+		RequestDelay:       time.Duration(delay) * time.Millisecond,
+		TargetBaseURL:      targetBaseURL,
+		InsecureSkipVerify: insecureSkipVerify,
 	}
 
 	// Determine if scanning is enabled.
@@ -642,7 +645,7 @@ func main() {
 								potentialVuln.Details += fmt.Sprintf(" Confirmed via %s interaction from %s.", interaction.Protocol, interaction.RemoteAddress)
 								confirmedOASTFindings = append(confirmedOASTFindings, potentialVuln)
 								scannerOptions.OASTCorrelationMap.Delete(key) // Remove correlated vulnerability from map.
-								return false                                  // Stop iterating for this key.
+								break                                 // Stop iterating for this key.
 							}
 						}
 						return true // Continue iterating.
