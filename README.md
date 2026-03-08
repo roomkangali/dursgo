@@ -121,7 +121,7 @@ This repository also includes video walkthroughs for each vulnerable lab, demons
 - **Accurate Finding Deduplication:** Presents clean, unique findings by normalizing and deduplicating results.
 - **OAST (Out-of-Band) Integration:** Detects blind vulnerabilities through out-of-band verification.
 - **CISA KEV Enrichment:** Enriches findings with context from the CISA Known Exploited Vulnerabilities (KEV) catalog.
-- **AI-Powered Analysis:** Integrates with LLMs (Gemini, Groq) to provide detailed analysis, root cause summaries, and specific code remediation advice for discovered vulnerabilities.
+- **AI-Powered Analysis:** Integrates with LLMs (Gemini, Groq,OpenAI,Openrouter,Anthropic) to provide detailed analysis, root cause summaries, and specific code remediation advice for discovered vulnerabilities.
 - **Flexible Configuration:** Highly customizable via both YAML configuration files and command-line flags.
 - **High-Performance Engine:** Lightweight and fast, leveraging the performance of Go.
 
@@ -321,7 +321,7 @@ This section contains the core parameters for the scan.
 ### AI (LLM) Integration Settings
 This section configures the optional AI-powered analysis feature.
 - `enabled`: A boolean (`true`/`false`) to enable or disable AI analysis. Can be overridden by the `--enable-ai` flag.
-- `provider`: The LLM provider to use. Supported: `"gemini"`, `"groq"`, `"openai"`.
+- `provider`: The LLM provider to use. Supported: `"gemini"`, `"groq"`, `"openai"`, `"openrouter"`, `"anthropic"`.
 - `api_key`: Your API key for the selected provider.
 - `model`: The specific model name to use (e.g., `"gemini-2.0-flash"`, `"meta-llama/llama-4-scout-17b-16e-instruct"`).
 
@@ -458,8 +458,8 @@ This document outlines the future development plans for the DursGo security scan
 The following are potential areas for future development to make DursGo a more comprehensive and leading-edge scanner.
 
 #### a. LLM & AI Integration Enhancements
-- **Current Support:** Dursgo currently supports AI-powered vulnerability analysis using **Gemini** and **Groq** (via an OpenAI-compatible API).
-- **Future Support:** Future development will focus on adding direct support for more providers like **OpenAI**, **Anthropic**, and local models via **Ollama**.
+- **Current Support:** Dursgo currently supports AI-powered vulnerability analysis using **Gemini**, **Groq**,**OpenAI**,**Openrouter** and **Anthropic**
+- **Future Support:** Future development will focus on adding direct support for more providers like local models via **Ollama**.
 - **AI-Powered Scanning:** A major planned feature is the "AI-Powered Payload Generation" scanner, which will use LLMs to dynamically create novel test payloads, moving beyond static payload lists.
 
 #### b. API Scanning Enhancements
